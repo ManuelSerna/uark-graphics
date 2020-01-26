@@ -1,5 +1,5 @@
 //********************************
-// Graphics Projeect 1: Charts
+// CSCE 4813 Computer Graphics Projeect 1: Charts
 // Manuel Serna-Aguilera
 //********************************
 
@@ -14,7 +14,71 @@
 
 using namespace std;
 
-//GLenum mode = GL_LINE_LOOP;
+// Global constants, all lower bounds are zero in order for scaling to work
+#define MIN_X_VIEW 0
+#define MAX_X_VIEW 100
+#define MIN_Y_VIEW 0
+#define MAX_Y_VIEW 100
+#define MIN_Z_VIEW 0
+#define MAX_Z_VIEW 100
+
+#define PTS 5
+
+// Global variables
+float X[PTS];
+float Y[PTS];
+
+
+
+//================================
+// Return max value from an array A
+//================================
+float getMax(float A[])
+{
+	float max = -INFINITY;
+	
+	for(int i = 0; i < PTS; i++)
+	{
+		if(max < A[i])
+		{
+			max = A[i];
+		}
+	}
+	
+	return max;
+}
+
+
+
+//================================
+// Transformation functions
+/*
+	input range: [a..b] = [min..max]
+	output range: [c..d] = [MIN_VIEW..MAX_VIEW]
+	out = (d - c)(input pt - a)/(b - a) + c
+*/
+// Input: some x or y component of a point
+// Return: adjusted x or y so it can fit in window
+//================================
+float transformX(float x)
+{
+	float padX = 5.0;// pad with space so data doesn't appear at very edge of window
+	float maxX = getMax(X) + padX;
+	float minX = 0;// graph will always start at zero
+	float out = ((MAX_X_VIEW) * (x - minX))/(maxX - minX);
+	return out;
+}
+
+float transformY(float y)
+{	
+	float padY = 5.0;
+	float maxY = getMax(Y) + padY;
+	float minY = 0;
+	float out = ((MAX_Y_VIEW) * (y - minY))/(maxY - minY);
+	return out;
+}
+
+
 
 //================================
 // Init function for OpenGL
@@ -24,79 +88,161 @@ void init()
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	glOrtho(MIN_X_VIEW, MAX_X_VIEW, 
+		MIN_Y_VIEW, MAX_Y_VIEW, 
+		MIN_Z_VIEW, MAX_Z_VIEW);// define area that one can draw in
+	glEnable(GL_DEPTH_TEST);
 }
 
-//================================
-// TODO: Draw dot chart
-// TODO: Generalize for input
-//================================
+//--------------------------------
+// Draw dot chart
+//--------------------------------
 void dot()
-{
-	// Color values
-	float red = 1.0;
-	float green = 0.0;
-	float blue = 0.0;
-
-	// Sizes of x and y dims of circle
-	float mx = 0.02;
-	float my = 0.02;
-
-	// Translation values for x and y dims
-	//float bx = -0.0;
-	//float by = -0.0;
-
-	// Draw a circle to represent a bigger dot
-	glBegin(GL_POLYGON);
-	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);// ???
-	glColor3f(red, green, blue);
-	
-	// Draw 360 vertices to create circle
-	for(int t = 0; t < 360; t++)
-	{
-		float radians = M_PI * t/180.0;
-		float x = mx * cos(radians);
-		float y = my * sin(radians);
-		//printf("%f %f \n", x, y);
-		glVertex2f(x, y);
-	}
-	
-	glEnd();
-	glFlush();
-}
-
-//================================
-// TODO: Draw column chart
-// TODO: Generalize for input
-//================================
-void column()
 {
 	// Color values
 	float red = 0.0;
 	float green = 1.0;
 	float blue = 1.0;
-
-	// Coords for rectangle
-	float x1 = 0.0;
-	float y1 = 0.5;
-	float x2 = 0.25;
-	float y2 = -0.25;
-
-	glBegin(GL_POLYGON);
-	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);// ???
-	//glOrtho(MIN_X_VIEW, MAX_X_VIEW, MIN_Y_VIEW, MAX_Y_VIEW, MIN_Z_VIEW, MAX_Z_VIEW);
 	
 	glColor3f(red, green, blue);
-	glVertex2f(x1, y1);
-	glVertex2f(x2, y1);
-	glVertex2f(x2, y2);
-	glVertex2f(x1, y2);
+
+	// Adjust size of rectangles here
+	float xSize = 1.0;
+	float ySize = 1.0;
+	
+	// Draw little squares according to transformed coords
+	for(int i = 0; i < PTS; i++)
+	{
+		glBegin(GL_POLYGON);
+		
+		float x = transformX(X[i]);
+		float y = transformY(Y[i]);
+		
+		float x1 = x;
+		float y1 = y;
+		float x2 = x + xSize;
+		float y2 = y + ySize;
+		
+		
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y1);
+		glVertex2f(x2, y2);
+		glVertex2f(x1, y2);
+		
+		glEnd();
+	}
+	
+	glFlush();
+}
+
+//--------------------------------
+// Draw column chart
+//--------------------------------
+void column()
+{
+	// Color values
+	float red = 1.0;
+	float green = 1.0;
+	float blue = 0.0;
+	glColor3f(red, green, blue);
+	
+	// Adjust size of columns
+	float colW = 4.0;
+	
+	// Draw columns
+	for(int i = 0; i < PTS; i++)
+	{
+		glBegin(GL_POLYGON);
+		
+		float x = transformX(X[i]);
+		float y = transformY(Y[i]);
+		
+		float x1 = x;
+		float y1 = y;
+		float x2 = x + colW;
+		float y2 = 1.0;
+		
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y1);
+		glVertex2f(x2, y2);
+		glVertex2f(x1, y2);
+		
+		glEnd();
+	}
+}
+
+//--------------------------------
+// Draw line chart
+//--------------------------------
+void line()
+{
+	// Color values
+	float red = 0.0;
+	float green = 1.0;
+	float blue = 0.0;
+	glColor3f(red, green, blue);
+
+	glLineWidth(1);
+	
+	glBegin(GL_LINE_STRIP);
+
+	for (int i = 0; i < PTS; i++)
+	{
+		float x = transformX(X[i]);
+		float y = transformY(Y[i]);
+		glVertex2f(x, y);
+	}
+
+	glEnd();
+}
+
+//--------------------------------
+// Draw area chart
+//--------------------------------
+void area()
+{
+	// Color values
+	float red = 1.0;
+	float green = 0.0;
+	float blue = 1.0;
+	glColor3f(red, green, blue);
+	
+	glBegin(GL_POLYGON);
+	
+	glVertex2f(transformX(X[0]), 1);
+	
+	for (int i = 0; i < PTS; i++)
+	{
+		float x = transformX(X[i]);
+		float y = transformY(Y[i]);
+		glVertex2f(x, y);
+	}
+	
+	// Create a vertex in the lower-right corner to complete the area chart
+	glVertex2f(transformX(X[PTS-1]), 1);
 	
 	glEnd();
 }
 
-
-// TODO: Draw line chart
-// TODO: Draw area chart
+//================================
+// Keyboard callback for OpenGL
+/*
+	TODO: take in user input from file
+	TODO: adjust colors in each function
+*/
+//================================
+void keyboard(unsigned char key, int x, int y)
+{
+	if(key == 'h')
+	{
+		printf("hello mom");
+	}
+	
+	// TODO: it seems like I will do file i/o here
+	
+	// Redraw objects
+	//glutPostRedisplay();
+}
 
 //================================
 // Display callback for OpenGL
@@ -104,18 +250,42 @@ void column()
 //================================
 void display()
 {
+	// Manually set points for now
+	X[0] = 10.0;
+	X[1] = 20.0;
+	X[2] = 30.0;
+	X[3] = 40.0;
+	X[4] = 50.0;
+	
+	Y[0] = 10.0;
+	Y[1] = 25.0;
+	Y[2] = 35.0;
+	Y[3] = 40.0;
+	Y[4] = 42.0;
+
 	glClear(GL_COLOR_BUFFER_BIT);
-	// TODO: place draw functions here
-	//dot();
+	glMatrixMode(GL_MODELVIEW);
+	
+	dot();
 	column();
-	glFlush();
+	line();
+	//area();
+	
+	glFlush();// make sure objects are drawn
 }
+
+
+
 
 //================================
 // Main
 //================================
 int main(int argc, char *argv[])
 {
+	// Prompt user to enter 1) name of input data file, and 2) chart type
+	//printf("Enter the name of the input data file");
+	//printf("Which chart do");
+
 	// Use the below method to initialize the GLUT library
 	//   &argc: pointer to command line options intented for GLUT,
 	//   argv: another command line argument that GLUT also processes
@@ -126,20 +296,16 @@ int main(int argc, char *argv[])
 
 	// Declare location of top-left corner of window
 	glutInitWindowPosition(80, 80);
-
-	
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
-	glutCreateWindow("Graphics Project 1-Manuel Serna-Aguilera");
+	glutCreateWindow("Graphics Project 1: Manuel Serna-Aguilera");
+	
+	// TODO: take in data from file
+	glutKeyboardFunc(keyboard);
 
-	// Tell OpenGL
+	// Tell OpenGL to display our drawings
 	glutDisplayFunc(display);
-
 	init();
-
-	glutMainLoop();
-
-	// Printing a string a chars iwth stdio
-	//printf("%s \n", "Hello mom!");
+	glutMainLoop();// event-handling function, no more code goes after thiss
 
 	return 0;
 }
