@@ -6,11 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef MAC
-#include <GLUT/glut.h>
-#else
 #include <GL/glut.h>
-#endif
 
 using namespace std;
 
@@ -20,13 +16,14 @@ using namespace std;
 #define MIN_Y_VIEW 0
 #define MAX_Y_VIEW 100
 #define MIN_Z_VIEW 0
-#define MAX_Z_VIEW 100
+#define MAX_Z_VIEW 1
 
 #define PTS 5
 
 // Global variables
 float X[PTS];
 float Y[PTS];
+float color[3];// hold RGB valuess
 
 
 
@@ -53,9 +50,9 @@ float getMax(float A[])
 //================================
 // Transformation functions
 /*
-	input range: [a..b] = [min..max]
+	input range:  [a..b] = [min..max]
 	output range: [c..d] = [MIN_VIEW..MAX_VIEW]
-	out = (d - c)(input pt - a)/(b - a) + c
+	out =         (d - c)(input pt - a)/(b - a) + c
 */
 // Input: some x or y component of a point
 // Return: adjusted x or y so it can fit in window
@@ -89,9 +86,20 @@ void init()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(MIN_X_VIEW, MAX_X_VIEW, 
-		MIN_Y_VIEW, MAX_Y_VIEW, 
-		MIN_Z_VIEW, MAX_Z_VIEW);// define area that one can draw in
+			MIN_Y_VIEW, MAX_Y_VIEW, 
+			MIN_Z_VIEW, MAX_Z_VIEW);// define area that one can draw in
 	glEnable(GL_DEPTH_TEST);
+	
+	// Clear global arrays
+	for(int i = 0; i < PTS; i++)
+	{
+		X[i] = 0.0;
+		Y[i] = 0.0;
+	}
+	
+	color[0] = 0.0;
+	color[1] = 0.0;
+	color[2] = 0.0;
 }
 
 //--------------------------------
@@ -113,6 +121,7 @@ void dot()
 	// Draw little squares according to transformed coords
 	for(int i = 0; i < PTS; i++)
 	{
+		// TODO: use primitive GL_POINTS instead of polygon primitive, then all I will need will to coords
 		glBegin(GL_POLYGON);
 		
 		float x = transformX(X[i]);
@@ -225,6 +234,40 @@ void area()
 }
 
 //================================
+// Display callback for OpenGL
+// Purpose: tell the OpenGL what we want to display on window here
+//================================
+void display()
+{
+	// Manually set points for now
+	/*
+	X[0] = 10.0;
+	X[1] = 20.0;
+	X[2] = 30.0;
+	X[3] = 40.0;
+	X[4] = 50.0;
+	
+	Y[0] = 10.0;
+	Y[1] = 25.0;
+	Y[2] = 35.0;
+	Y[3] = 40.0;
+	Y[4] = 42.0;
+	//*/
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	
+	dot();
+	column();
+	line();
+	//area();
+	
+	glFlush();// make sure objects are drawn
+}
+
+
+
+//================================
 // Keyboard callback for OpenGL
 /*
 	TODO: take in user input from file
@@ -242,38 +285,35 @@ void keyboard(unsigned char key, int x, int y)
 	
 	// Redraw objects
 	//glutPostRedisplay();
+	
+	
+	/*
+	 // Read point array
+	FILE *fd = fopen("rectangle.txt", "r");
+	if (fscanf(fd, "%d\n", &count) != 1)
+		printf("Error: could not execute fscanf command\n");
+	for (int i=0; i<count; i++)
+		if (fscanf(fd, "%f %f %f %f %f %f %f\n",
+		&color[i][0], &color[i][1], &color[i][2],
+		&point[i][0], &point[i][1], &point[i][2], &point[i][3]) != 7)
+			printf("Error: could not execute fscanf command\n");
+	fclose(fd);
+	*/
 }
 
+
+
 //================================
-// Display callback for OpenGL
-// Purpose: tell the OpenGL what we want to display on window here
+// Ask user for input
 //================================
-void display()
+void prompt()
 {
-	// Manually set points for now
-	X[0] = 10.0;
-	X[1] = 20.0;
-	X[2] = 30.0;
-	X[3] = 40.0;
-	X[4] = 50.0;
-	
-	Y[0] = 10.0;
-	Y[1] = 25.0;
-	Y[2] = 35.0;
-	Y[3] = 40.0;
-	Y[4] = 42.0;
-
-	glClear(GL_COLOR_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	
-	dot();
-	column();
-	line();
-	//area();
-	
-	glFlush();// make sure objects are drawn
+	printf("\nPlease select a chart type:\n");
+	printf("  'd' = dot chart\n");
+	printf("  'c' = column chart\n");
+	printf("  'l' = line chart\n");
+	printf("  'a' = area chart\n");
 }
-
 
 
 
@@ -282,10 +322,6 @@ void display()
 //================================
 int main(int argc, char *argv[])
 {
-	// Prompt user to enter 1) name of input data file, and 2) chart type
-	//printf("Enter the name of the input data file");
-	//printf("Which chart do");
-
 	// Use the below method to initialize the GLUT library
 	//   &argc: pointer to command line options intented for GLUT,
 	//   argv: another command line argument that GLUT also processes
@@ -298,14 +334,16 @@ int main(int argc, char *argv[])
 	glutInitWindowPosition(80, 80);
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
 	glutCreateWindow("Graphics Project 1: Manuel Serna-Aguilera");
-	
-	// TODO: take in data from file
-	glutKeyboardFunc(keyboard);
+	init();
+	prompt();
 
 	// Tell OpenGL to display our drawings
 	glutDisplayFunc(display);
-	init();
-	glutMainLoop();// event-handling function, no more code goes after thiss
+	
+	// TODO: take in data from file
+	glutKeyboardFunc(keyboard);
+	
+	glutMainLoop();// event-handling function, no more code goes after this
 
 	return 0;
 }
