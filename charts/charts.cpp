@@ -29,6 +29,17 @@ char choice;
 
 
 //================================
+// Normalize color values
+//================================
+float normalize(float x)
+{
+	float z = x/255;
+	return z;
+}
+
+
+
+//================================
 // Return max value from an array A
 //================================
 float getMax(float A[])
@@ -60,18 +71,12 @@ float getMax(float A[])
 //================================
 float transformX(float x, float minX, float maxX)
 {
-	//float padX = 5.0;// pad with space so data doesn't appear at very edge of window
-	//float maxX = getMax(X) + padX;
-	//float minX = 0;// graph will always start at zero
 	float out = ((MAX_X_VIEW) * (x - minX))/(maxX - minX);
 	return out;
 }
 
 float transformY(float y, float minY, float maxY)
 {	
-	//float padY = 5.0;
-	//float maxY = getMax(Y) + padY;
-	//float minY = 0;
 	float out = ((MAX_Y_VIEW) * (y - minY))/(maxY - minY);
 	return out;
 }
@@ -104,7 +109,6 @@ void init()
 	// Clear global arrays
 	for(int i = 0; i < PTS; i++)
 	{
-		//X[i] = ((float)(i) + 1.0) * 10.0;
 		X[i] = 0.0;
 		Y[i] = 0.0;
 	}
@@ -131,16 +135,6 @@ void init()
 	
 	fclose(data);
 	
-	printf("raw pts:\n");
-	for(int i=0;i<PTS;i++)
-	{
-		printf("%f", X[i]);
-		printf("\n");
-		printf("%f", Y[i]);
-		printf("\n");
-	}
-	printf("-----------------\n");
-	
 	//---------------------------------
 	// Transform X and Y
 	//---------------------------------
@@ -158,61 +152,13 @@ void init()
 		Y[i] = transformY(Y[i], minY, maxY);
 	}
 	
-	/*
-	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&	
-	// Take in points from data.txt
-	// Read point array
-	FILE *data = fopen("data.txt", "r");
-	
-	//if (fscanf(fd, "%d\n", &count) != 1)
-	if(data == NULL)
-	{
-		printf("Error: could not read data.txt file.\n");
-	}
-	
-	for(int i = 0; i < PTS; i++)
-	{
-		//if (fscanf(data, "%f %f %f %f %f %f %f\n", &color[i][0], &color[i][1], &color[i][2], &point[i][0], &point[i][1], &point[i][2], &point[i][3]) != 7)
-		if(fscanf(data, "%f", &Y[i]) != 1)
-		{
-			printf("Error: could not execute fscanf command\n");
-		}
-	}
-	
-	fclose(data);
-	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-	//*/
-	
-	// Manually set points
-	/*
-	X[0] = 10.0;
-	X[1] = 20.0;
-	X[2] = 30.0;
-	X[3] = 40.0;
-	X[4] = 50.0;
-	
-	Y[0] = 10.0;
-	Y[1] = 25.0;
-	Y[2] = 35.0;
-	Y[3] = 40.0;
-	Y[4] = 42.0;
-	//*/
-	
-	printf("Transformed pts:\n");
-	for(int i=0;i<PTS;i++)
-	{
-		printf("%f", X[i]);
-		printf("\n");
-		printf("%f", Y[i]);
-		printf("\n");
-	}
-	printf("-----------------\n");
-	
-	//color[0] = 0.0;
-	//color[1] = 0.0;
-	//color[2] = 0.0;
-	
+	// Initialize choice	
 	choice = 'x';
+	
+	// Normalize colors
+	color[0] = normalize(color[0]);
+	color[1] = normalize(color[1]);
+	color[2] = normalize(color[2]);
 }
 
 //--------------------------------
@@ -220,7 +166,6 @@ void init()
 //--------------------------------
 void dot()
 {
-	// Color values TODO: take in array vals and assign
 	float red = color[0];
 	float green = color[1];
 	float blue = color[2];
@@ -234,22 +179,13 @@ void dot()
 	// Draw little squares according to transformed coords
 	for(int i = 0; i < PTS; i++)
 	{
-		// TODO: use primitive GL_POINTS instead of polygon primitive, then all I will need will to coords
+		// TODO: use primitive GL_POINTS instead of polygon primitive, then all I will need will be coords
 		glBegin(GL_POLYGON);
 		
-		//float x = transformX(X[i]);
-		//float y = transformY(Y[i]);
-		
-		//printf("%f", x);//afadsfdsfadsfadsfadsfa
-		//printf("\n");//asdfasdfadsfasdfasdfa
-		
-		//float x1 = x;
-		//float y1 = y;
 		float x1 = X[i];
 		float y1 = Y[i];
 		float x2 = x1 + xSize;
 		float y2 = y1 + ySize;
-		
 		
 		glVertex2f(x1, y1);
 		glVertex2f(x2, y1);
@@ -267,7 +203,6 @@ void dot()
 //--------------------------------
 void column()
 {
-	// Color values  TODO: take in array vals and assign
 	float red = color[0];
 	float green = color[1];
 	float blue = color[2];
@@ -282,11 +217,6 @@ void column()
 	{
 		glBegin(GL_POLYGON);
 		
-		//float x = transformX(X[i]);
-		//float y = transformY(Y[i]);
-		
-		//float x1 = x;
-		//float y1 = y;
 		float x1 = X[i];
 		float y1 = Y[i];
 		float x2 = x1 + colW;
@@ -306,7 +236,6 @@ void column()
 //--------------------------------
 void line()
 {
-	// Color values TODO: take in array vals and assign
 	float red = color[0];
 	float green = color[1];
 	float blue = color[2];
@@ -319,9 +248,6 @@ void line()
 
 	for (int i = 0; i < PTS; i++)
 	{
-		//float x = transformX(X[i]);
-		//float y = transformY(Y[i]);
-		//glVertex2f(x, y);
 		glVertex2f(X[i], Y[i]);
 	}
 
@@ -333,7 +259,6 @@ void line()
 //--------------------------------
 void area()
 {
-	// Color values TODO: take in array vals and assign
 	float red = color[0];
 	float green = color[1];
 	float blue = color[2];
@@ -342,19 +267,14 @@ void area()
 	
 	glBegin(GL_POLYGON);
 	
-	//glVertex2f(transformX(X[0]), 1);
 	glVertex2f(X[0], 1);
 	
 	for (int i = 0; i < PTS; i++)
 	{
-		//float x = transformX(X[i]);
-		//float y = transformY(Y[i]);
-		//glVertex2f(x, y);
 		glVertex2f(X[i], Y[i]);
 	}
 	
 	// Create a vertex in the lower-right corner to complete the area chart
-	//glVertex2f(transformX(X[PTS-1]), 1);
 	glVertex2f(X[PTS-1], 1);
 	
 	glEnd();
@@ -424,23 +344,8 @@ void keyboard(unsigned char key, int x, int y)
 		choice = 'a';// draw area chart
 	}
 	
-	// TODO: it seems like I will do file i/o here
-	
 	// Redraw objects
 	glutPostRedisplay();
-	
-	/*
-	 // Read point array
-	FILE *fd = fopen("rectangle.txt", "r");
-	if (fscanf(fd, "%d\n", &count) != 1)
-		printf("Error: could not execute fscanf command\n");
-	for (int i=0; i<count; i++)
-		if (fscanf(fd, "%f %f %f %f %f %f %f\n",
-		&color[i][0], &color[i][1], &color[i][2],
-		&point[i][0], &point[i][1], &point[i][2], &point[i][3]) != 7)
-			printf("Error: could not execute fscanf command\n");
-	fclose(fd);
-	*/
 }
 
 
@@ -475,7 +380,7 @@ int main(int argc, char *argv[])
 	
 	// Prompt user and get input
 	prompt();
-	glutKeyboardFunc(keyboard);// TODO: take in data from file
+	glutKeyboardFunc(keyboard);
 	
 	init();
 	glutDisplayFunc(display);// tell OpenGL to display our drawings
