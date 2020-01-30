@@ -98,7 +98,7 @@ void init()
 	//---------------------------------
 	// Set up for OpenGL
 	//---------------------------------
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);// zero rgb vals & opaque window (4th param)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(MIN_X_VIEW, MAX_X_VIEW, 
@@ -162,6 +162,28 @@ void init()
 }
 
 //--------------------------------
+// Draw scale lines (every 10 units on the scaled 
+//--------------------------------
+void drawScaleLines()
+{
+	float xPad = 2.0;
+	float yPad = 10.0;
+	
+	glColor3f(1.0, 1.0, 1.0);// draw white lines
+	
+	//for(int i = MAX_Y_VIEW; i >= 0; i -= 10)
+	for(int i = MIN_Y_VIEW; i <= MAX_Y_VIEW-1; i += 10)
+	{
+		glBegin(GL_LINES);
+		
+		glVertex2f( MIN_X_VIEW + xPad, (float)(i) + yPad );
+		glVertex2f( MAX_X_VIEW - xPad, (float)(i) + yPad );
+		
+		glEnd();
+	}
+}
+
+//--------------------------------
 // Draw dot chart
 //--------------------------------
 void dot()
@@ -179,7 +201,6 @@ void dot()
 	// Draw little squares according to transformed coords
 	for(int i = 0; i < PTS; i++)
 	{
-		// TODO: use primitive GL_POINTS instead of polygon primitive, then all I will need will be coords
 		glBegin(GL_POLYGON);
 		
 		float x1 = X[i];
@@ -210,7 +231,7 @@ void column()
 	glColor3f(red, green, blue);
 	
 	// Adjust size of columns
-	float colW = 4.0;
+	float colW = 2.0;
 	
 	// Draw columns
 	for(int i = 0; i < PTS; i++)
@@ -243,19 +264,19 @@ void line()
 	glColor3f(red, green, blue);
 
 	glLineWidth(1);
-	
 	glBegin(GL_LINE_STRIP);
 
 	for (int i = 0; i < PTS; i++)
 	{
 		glVertex2f(X[i], Y[i]);
 	}
-
+	
 	glEnd();
 }
 
 //--------------------------------
 // Draw area chart
+// NOTE: GL_POLYGON will draw convex polygons, otherwise it'll look weird
 //--------------------------------
 void area()
 {
@@ -263,9 +284,26 @@ void area()
 	float green = color[1];
 	float blue = color[2];
 	
-	glColor3f(red, green, blue);
+	//glColor3f(red, green, blue);
 	
-	glBegin(GL_POLYGON);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_STENCIL_TEST);
+	
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glStencilFunc(GL_ALWAYS, 0, 1);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_INVERT);
+	glStencilMask(1);
+		
+	//glBegin(GL_POLYGON);
+	//glBegin(GL_LINE_LOOP);
+	glBegin(GL_TRIANGLE_FAN);
+	
+	glVertex2f(0.0, 0.0);
+	
+	glColor3f(red, green, blue);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glStencilFunc(GL_EQUAL, 1, 1);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	
 	glVertex2f(X[0], 1);
 	
@@ -276,7 +314,8 @@ void area()
 	
 	// Create a vertex in the lower-right corner to complete the area chart
 	glVertex2f(X[PTS-1], 1);
-	
+	glVertex2f(X[0], 1);
+
 	glEnd();
 }
 
@@ -288,6 +327,9 @@ void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
+	
+	// Draw lines
+	drawScaleLines();
 	
 	// Draw according to user input
 	switch(choice)
