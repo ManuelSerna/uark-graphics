@@ -4,6 +4,7 @@
 // Manuel Serna-Aguilera
 //********************************
 
+#include <bits/stdc++.h> // tokenizing strings
 #include <fstream>
 #include <GL/glut.h>
 #include <iostream>
@@ -28,6 +29,44 @@ using namespace std;
 float X[PTS];
 float Y[PTS];
 float color[3];
+
+
+
+//================================
+// Draw dot
+//================================
+void dot(float dotSize, float x, float y)
+{
+	float red = color[0];
+	float green = color[1];
+	float blue = color[2];
+	
+	glColor3f(red, green, blue);
+
+	// Adjust size of rectangles here
+	//float xSize = 1.0;
+	//float ySize = 1.0;
+	
+	// Draw little squares according to transformed coords
+	for(int i = 0; i < PTS; i++)
+	{
+		glBegin(GL_POLYGON);
+		
+		float x1 = x;
+		float y1 = y;
+		float x2 = x1 + dotSize;
+		float y2 = y1 + dotSize;
+		
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y1);
+		glVertex2f(x2, y2);
+		glVertex2f(x1, y2);
+		
+		glEnd();
+	}
+	
+	glFlush();
+}
 
 
 
@@ -81,46 +120,42 @@ void display()
 		return;
 	}
 	
+	// Read each line, then place tokens in a vector and process commands and extract values
 	if(data.is_open())
 	{
 		while(getline(data, line))
-		{
-			cout << line << endl;
+		{			
+			// Extract tokens from each line
+			vector <string> tokens;
+			stringstream check1(line);// stringstream obj
+		    string intermediate;
+      
+			// Tokenize line, split along space " "
+			while(getline(check1, intermediate, ' '))
+			{
+				tokens.push_back(intermediate);
+			}
+			
+			string token = tokens[0];// size = tokens.size()
+			if(token == "set_color")
+			{
+				color[0] = stof(tokens[1]);
+				color[1] = stof(tokens[2]);
+				color[2] = stof(tokens[3]);
+			}
+			else if(token == "draw_point")
+			{
+				// Pass: dot size, x, y
+				dot(
+					stof(tokens[1]), 
+					stof(tokens[2]), 
+					stof(tokens[3])
+				);
+			}
 		}
 	}
 	
 	data.close();
-	
-	/*
-	if(fscanf(data, "%s %f %f %f\n", command, &color[0], &color[1], &color[2]) != 3)
-	{
-		printf("Error: could not execute fscanf command (color).\n");
-	}
-	*/
-	
-	//cout << "command -> " << command << endl;
-	
-	/*
-	FILE *data = fopen("chart.txt", "r");
-	
-	// First line: color info
-	if(fscanf(data, "%f %f %f\n", &color[0], &color[1], &color[2]) != 3)
-	{
-		printf("Error: could not execute fscanf command (color).\n");
-	}
-	
-	// All subsequent lines: points (x, y) for graph
-	for(int i = 0; i < PTS; i++)
-	{
-		if(fscanf(data, "%f %f\n", &X[i], &Y[i]) != 2)
-		{
-			printf("Error: could not execute fscanf command (vertices).\n");
-		}
-	}
-	
-	fclose(data);
-	//*/
-	
 	glFlush();
 }
 
