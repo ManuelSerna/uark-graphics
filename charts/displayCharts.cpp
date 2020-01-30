@@ -60,25 +60,45 @@ void init()
 //================================
 void display()
 {
-	string command = "";
+	string line;
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	
-	FILE *data = fopen("chart.txt", "r");
+	//FILE *data = fopen("chart.txt", "r");
 	
 	// TODO: process scale lines
 	// TODO: get scale lines color
 	// TODO: draw scale lines
 	
 	// Draw chart itself
-	/*if(fscanf(data, "%% %f %f %f\n", command, &color[0], &color[1], &color[2]) != 3)
+	ifstream data;
+	data.open("chart.txt");
+	
+	if(!data)
+	{
+		cout << "Error: could not read file. Bailing.";
+		return;
+	}
+	
+	if(data.is_open())
+	{
+		while(getline(data, line))
+		{
+			cout << line << endl;
+		}
+	}
+	
+	data.close();
+	
+	/*
+	if(fscanf(data, "%s %f %f %f\n", command, &color[0], &color[1], &color[2]) != 3)
 	{
 		printf("Error: could not execute fscanf command (color).\n");
 	}
 	*/
 	
-	cout << "Command is: " << command << endl;
+	//cout << "command -> " << command << endl;
 	
 	/*
 	FILE *data = fopen("chart.txt", "r");
