@@ -152,10 +152,6 @@ void display()
 	ifstream data;
 	data.open("chart.txt");
 	
-	// TODO: process scale lines
-	// TODO: get scale lines color
-	// TODO: draw scale lines
-	
 	if(!data)
 	{
 		cout << "Error: could not read file. Bailing.";

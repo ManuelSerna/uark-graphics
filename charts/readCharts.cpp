@@ -101,7 +101,45 @@ void write(char choice)
 	ofstream dataOut;
 	dataOut.open("chart.txt");
 	
-	// TODO: write scale line commands in-function and color commands
+	// Color chart scale lines white
+	dataOut << "set_color " 
+			<< 1.0 << " " 
+			<< 1.0 << " " 
+			<< 1.0 << endl;
+	
+	// Draw chart scale lines
+	dataOut << "draw_line " 
+				<< 1 << " " 
+				<< 5.0 << " " 
+				<< 1.0 << " " 
+				<< MAX_X_VIEW-5.0 << " " 
+				<< 1.0 << endl;
+	
+	for(int i = 10; i < MAX_Y_VIEW; i += 10)
+	{
+		// Scale line write:
+		// draw_line #w #x1 #y1 #x2 #y2
+		float x1 = 5.0;
+		float y1 = (float)(i);
+		float x2 = MAX_X_VIEW - x1;
+		float y2 = (float)(i);
+		
+		dataOut << "draw_line " 
+				<< 1 << " " 
+				<< x1 << " " 
+				<< y1 << " " 
+				<< x2 << " " 
+				<< y2 
+				<< endl;
+	}
+	
+	// Top line
+	dataOut << "draw_line " 
+				<< 1 << " " 
+				<< 5.0 << " " 
+				<< MAX_Y_VIEW << " " 
+				<< MAX_X_VIEW-5.0 << " " 
+				<< MAX_Y_VIEW << endl;
 	
 	// Set color for graph next
 	dataOut << "set_color " 
@@ -283,10 +321,8 @@ void getUserInput(char *choicePtr)
 		while(!data.eof())
 		{
 			data >> dataInput;
-			//X[pos] = stof(dataInput);
 			X[pos] = (float)(pos) + 1.0;
 			Y[pos] = stof(dataInput);
-			//Y[pos] = (float)(pos) + 1.0;
 			pos++;
 		}
 	}
