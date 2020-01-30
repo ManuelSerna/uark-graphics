@@ -76,7 +76,7 @@ float transformY(float y, float minY, float maxY)
 //================================
 void scale()
 {
-	float padX = 5.0;// pad with space so data doesn't appear at very edge of window
+	float padX = 1.0;// pad with space so data doesn't appear at very edge of window
 	float maxX = getMax(X) + padX;
 	float minX = 0.0;// graph will always start at zero
 	
@@ -131,6 +131,30 @@ void write(char choice)
 		}
 		break;
 		
+		case 'l':
+		{
+			int w = 2;
+			
+			for(int i = 0; i < PTS-1; i++)
+			{
+				// Line write:
+				// draw_line #w #x1 #y1 #x2 #y2
+				float x1 = X[i];
+				float y1 = Y[i];
+				float x2 = X[i+1];
+				float y2 = Y[i+1];
+				
+				dataOut << "draw_line " 
+						<< w << " " 
+						<< x1 << " " 
+						<< y1 << " " 
+						<< x2 << " " 
+						<< y2 
+						<< endl;
+			}
+		}	
+		break;
+		
 		case 'c':
 		{
 			int n = 4;
@@ -161,30 +185,6 @@ void write(char choice)
 		}
 		break;
 		
-		case 'l':
-		{
-			int w = 2;
-			
-			for(int i = 0; i < PTS-1; i++)
-			{
-				// Line write:
-				// draw_line #w #x1 #y1 #x2 #y2
-				float x1 = X[i];
-				float y1 = Y[i];
-				float x2 = X[i+1];
-				float y2 = Y[i+1];
-				
-				dataOut << "draw_line " 
-						<< w << " " 
-						<< x1 << " " 
-						<< y1 << " " 
-						<< x2 << " " 
-						<< y2 
-						<< endl;
-			}
-		}	
-		break;
-		
 		case 'a':
 		{
 			int n = 4;
@@ -198,17 +198,21 @@ void write(char choice)
 				float y1 = Y[i];
 				float x2 = X[i+1];
 				float y2 = Y[i+1];
+				float x3 = X[i+1];
+				float y3 = 1.0;
+				float x4 = X[i];
+				float y4 = 1.0;
 				
 				dataOut << "draw_polygon " 
 						<< n << " " 
 						<< x1 << " " 
 						<< y1 << " " 
 						<< x2 << " " 
-						<< y1 << " " 
-						<< x2 << " " 
 						<< y2 << " " 
-						<< x1 << " " 
-						<< y2 << " " 
+						<< x3 << " " 
+						<< y3 << " " 
+						<< x4 << " " 
+						<< y4 << " " 
 						<< endl;
 			}
 		}	
@@ -244,11 +248,13 @@ void getUserInput(char *choicePtr)
 	cout << "Enter name of input file: ";
 	cin >> userInput;
 	
-	cout << "\nPlease select a chart type:\n";
+	cout << endl;
+	cout << "Please select one of the following chart types\n";
 	cout << "\t'd' = dot chart\n";
 	cout << "\t'c' = column chart\n";
 	cout << "\t'l' = line chart\n";
 	cout << "\t'a' = area chart\n";
+	cout << "Choice: ";
 	cin >> *choicePtr;
 	
 	cout << "\nChoose RGB values (0-255):\n";
@@ -277,8 +283,10 @@ void getUserInput(char *choicePtr)
 		while(!data.eof())
 		{
 			data >> dataInput;
-			X[pos] = stof(dataInput);
-			Y[pos] = (float)(pos) + 1.0;
+			//X[pos] = stof(dataInput);
+			X[pos] = (float)(pos) + 1.0;
+			Y[pos] = stof(dataInput);
+			//Y[pos] = (float)(pos) + 1.0;
 			pos++;
 		}
 	}

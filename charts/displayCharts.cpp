@@ -33,21 +33,16 @@ float color[3];
 
 
 //================================
-// Draw dot
+// Draw point (small square)
 //================================
-void dot(float dotSize, float x, float y)
+void drawPoint(float dotSize, float x, float y)
 {
 	float red = color[0];
 	float green = color[1];
 	float blue = color[2];
 	
 	glColor3f(red, green, blue);
-
-	// Adjust size of rectangles here
-	//float xSize = 1.0;
-	//float ySize = 1.0;
 	
-	// Draw little squares according to transformed coords
 	for(int i = 0; i < PTS; i++)
 	{
 		glBegin(GL_POLYGON);
@@ -66,6 +61,55 @@ void dot(float dotSize, float x, float y)
 	}
 	
 	glFlush();
+}
+
+
+
+//================================
+// Draw line
+//================================
+void drawLine(int w, float x1, float y1, float x2, float y2)
+{
+	float red = color[0];
+	float green = color[1];
+	float blue = color[2];
+	
+	glColor3f(red, green, blue);
+
+	glLineWidth(w);
+	glBegin(GL_LINE_STRIP);
+	
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	
+	glEnd();
+}
+
+
+
+//================================
+// Draw polygon--for either bar or area chart
+//================================
+void drawPolygon(int n, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
+{
+	float red = color[0];
+	float green = color[1];
+	float blue = color[2];
+	
+	glColor3f(red, green, blue);
+	
+	// Draw area
+	for(int i = 0; i < PTS; i++)
+	{
+		glBegin(GL_POLYGON);
+		
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y2);
+		glVertex2f(x3, y3);
+		glVertex2f(x4, y4);
+		
+		glEnd();
+	}
 }
 
 
@@ -104,15 +148,13 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	
-	//FILE *data = fopen("chart.txt", "r");
+	// Draw chart itself
+	ifstream data;
+	data.open("chart.txt");
 	
 	// TODO: process scale lines
 	// TODO: get scale lines color
 	// TODO: draw scale lines
-	
-	// Draw chart itself
-	ifstream data;
-	data.open("chart.txt");
 	
 	if(!data)
 	{
@@ -139,17 +181,44 @@ void display()
 			string token = tokens[0];// size = tokens.size()
 			if(token == "set_color")
 			{
-				color[0] = stof(tokens[1]);
-				color[1] = stof(tokens[2]);
-				color[2] = stof(tokens[3]);
+				color[0] = stof(tokens[1]);// r
+				color[1] = stof(tokens[2]);// g
+				color[2] = stof(tokens[3]);// b
 			}
 			else if(token == "draw_point")
 			{
-				// Pass: dot size, x, y
-				dot(
+				// Pass: dot size, x, y.
+				drawPoint(
 					stof(tokens[1]), 
 					stof(tokens[2]), 
 					stof(tokens[3])
+				);
+			}
+			else if(token == "draw_line")
+			{
+				// Pass: line width, x1, y1, x2, y2.
+				drawLine(
+					stoi(tokens[1]), 
+					stof(tokens[2]), 
+					stof(tokens[3]),
+					stof(tokens[4]),
+					stof(tokens[5])
+				);
+				
+			}
+			else if(token == "draw_polygon")
+			{
+				// Pass: n (#points), x1, y1, x2, y1, x2, y2, x1, y2
+				drawPolygon(
+					stoi(tokens[1]),			 
+					stof(tokens[2]),
+					stof(tokens[3]),
+					stof(tokens[4]),
+					stof(tokens[5]),
+					stof(tokens[6]),
+					stof(tokens[7]),
+					stof(tokens[8]),
+					stof(tokens[9])
 				);
 			}
 		}
