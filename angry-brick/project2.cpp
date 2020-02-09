@@ -8,14 +8,14 @@
 
 // Global constants
 // Drawing window coordinates
-#define MIN_X_VIEW 0
-#define MAX_X_VIEW 100
+#define MIN_X_VIEW -50
+#define MAX_X_VIEW 50
 
-#define MIN_Y_VIEW 0
-#define MAX_Y_VIEW 100
+#define MIN_Y_VIEW -50
+#define MAX_Y_VIEW 50
 
-#define MIN_Z_VIEW 0
-#define MAX_Z_VIEW 100
+#define MIN_Z_VIEW -50
+#define MAX_Z_VIEW 50
 
 // OpenGL window coordinates
 #define X_SCREEN 500
@@ -27,31 +27,9 @@ GLenum mode = GL_POLYGON;
 float cubeX;
 float cubeY;
 float cubeSize = 5.0;
+float cubeRotation = 15.0;// rotation of cube in deg
 
 using namespace std;
-
-
-//================================
-// Transformation functions
-/*
-	input range:  [a..b] = [0..WINDOWX/Y]
-	output range: [c..d] = [MINX/Y..MAXX/Y]
-	out =         (d - c)(input pt - a)/(b - a) + c
-*/
-// Return: adjusted x or y so it can fit in drawing window
-//================================
-/*
-float transformX(float x)
-{
-    float out = ((MAXX - MINX) * x / X_SCREEN) + MINX;
-    return out;
-}
-
-float transformY(float y)
-{	
-	float out = ((MAXY - MINY) * y / Y_SCREEN) + MINY;
-    return -1.0 * out;
-}//*/
 
 
 //================================
@@ -60,8 +38,8 @@ float transformY(float y)
 void init()
 {
     // Initialize cube coordinates
-    cubeX = 0.0;//transformX(0.0);
-    cubeY = 0.0;//transformY(0.0);
+    cubeX = 0.0;
+    cubeY = 0.0;
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glMatrixMode(GL_PROJECTION);
@@ -70,7 +48,7 @@ void init()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glRotatef(30.0, 1.0, 1.0, 1.0);// 1st param: angle of rotation (deg)
+	glRotatef(cubeRotation, 1.0, 1.0, 1.0);// 1st param: angle of rotation (deg)
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -169,23 +147,48 @@ void cube(float midx, float midy, float midz, float size)
 //================================
 void mouse(int button, int state, int x, int y)
 {
-    //float x_scale = (MAX_X_VIEW - MIN_X_VIEW) / (float)(MAX_X_SCREEN - MIN_X_SCREEN);
-    //point[count][0] = MIN_X_VIEW + (x - MIN_X_SCREEN) * x_scale;
-
+    // Calculate scale factors
     float xScale = (MAX_X_VIEW - MIN_X_VIEW)/(float)X_SCREEN;
     float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/(float)Y_SCREEN;
 
     // When mouse button is clicked
     if (state == GLUT_DOWN)
     {
-        // Transform coordinates
-        //cubeX = transformX(x);
         cubeX = MIN_X_VIEW + x * xScale;
         cubeY = MIN_Y_VIEW + y * yScale;
     }
 
+
+    // TODO: When user lets go of button, launch brick
+    /*
+    // Mouse button let go
+    if (state == GLUT_UP)
+    {
+    }
+    */
+
     // Update display
     glutPostRedisplay();
+
+    cout<<"x "<<cubeX<<endl;
+    cout<<"y "<<cubeY<<endl;
+}
+
+
+//================================
+// Motion callback for OpenGL
+//================================
+void motion(int x, int y)
+{
+    // Calculate scale factors
+    float xScale = (MAX_X_VIEW - MIN_X_VIEW)/(float)X_SCREEN;
+    float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/(float)Y_SCREEN;
+
+    // Handle mouse motion
+    cubeX = MIN_X_VIEW + x * xScale;
+    cubeY = MIN_Y_VIEW + y * yScale;
+    
+    glutPostRedisplay();// update for smooth motion
 }
 
 
@@ -197,7 +200,7 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
     
-	cube(cubeX, cubeY, 0.0, cubeSize);
+	cube(cubeX, -cubeY, 0.0, cubeSize);// invert y coord
 	
 	glFlush();
 }
@@ -208,14 +211,20 @@ void display()
 //================================
 int main(int argc, char *argv[])
 {
+    // OpenGL setup
 	glutInit(&argc, argv);
 	glutInitWindowSize(X_SCREEN, Y_SCREEN);
 	glutInitWindowPosition(80, 80);
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT_DEPTH);
 	glutCreateWindow("Graphics Project 2--Serna-Aguilera");
-	init();
-	//glutIdleFunc(idle):// TODO: maybe include idle callback
-	glutMouseFunc(mouse);
+	
+    // OpenGL functions with callbacks
 	glutDisplayFunc(display);
-	glutMainLoop();// enter loop until user closes out of window
+    glutMouseFunc(mouse);
+    glutMotionFunc(motion);
+
+    init();
+	glutMainLoop();
+
+    return 0;
 }
