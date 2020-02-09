@@ -48,7 +48,7 @@ void init()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glRotatef(cubeRotation, 1.0, 1.0, 1.0);// 1st param: angle of rotation (deg)
+	glRotatef(cubeRotation, 1.0, 1.0, 1.0);
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -169,9 +169,6 @@ void mouse(int button, int state, int x, int y)
 
     // Update display
     glutPostRedisplay();
-
-    cout<<"x "<<cubeX<<endl;
-    cout<<"y "<<cubeY<<endl;
 }
 
 
