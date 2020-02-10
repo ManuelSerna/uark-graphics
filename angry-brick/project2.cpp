@@ -1,6 +1,7 @@
 //********************************
 // Computer Graphics Project 2
 // Author: Manuel Serna-Aguilera
+// A sizable portion of this code was created by Dr. John M. Gauch
 //********************************
 #include <GL/glut.h> // OpenGL lib on Linux
 #include <iostream>
