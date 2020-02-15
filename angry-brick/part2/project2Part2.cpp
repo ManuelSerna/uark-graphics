@@ -1,5 +1,5 @@
 //********************************
-// Computer Graphics Project 2
+// Computer Graphics Project 3
 // Author: Manuel Serna-Aguilera
 // A sizable portion of this code was created by Dr. John M. Gauch
 //********************************
@@ -27,8 +27,8 @@
 GLenum mode = GL_POLYGON;
 
 // Global variables
-float cubeX;// TODO: change cube drawing coords, maybe (x1, y1), (x2, y2)
-float cubeY;
+float cubeX = 0.0;
+float cubeY = 0.0;
 float cubeSize = 5.0;
 float cubeRotation = 15.0;// rotation of cube in deg
 
@@ -40,19 +40,13 @@ using namespace std;
 //================================
 void init()
 {
-    // Initialize cube coordinates
-    cubeX = 0.0;
-    cubeY = 0.0;
-
 	glClearColor(0.0, 0.0, 0.0, 1.0);
+	
+	glEnable(GL_DEPTH_TEST);
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(MIN_X_VIEW, MAX_X_VIEW, MIN_Y_VIEW, MAX_Y_VIEW, MIN_Z_VIEW, MAX_Z_VIEW);
-	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(cubeRotation, 1.0, 1.0, 1.0);
-	glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -180,10 +174,9 @@ void mouse(int button, int state, int x, int y)
 
     // TODO: When user lets go of button, launch brick
     // Mouse button let go
-    if (state == GLUT_UP)
-    {
-    	cout << "mouse let go!\n";
-    }
+    //if (state == GLUT_UP)
+    //{
+    //}
 
     // Update display
     glutPostRedisplay();
@@ -212,10 +205,25 @@ void motion(int x, int y)
 //================================
 void display()
 {
+	// Clear screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	// Draw cube
 	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
     
-	cube(cubeX, -cubeY, 0.0, cubeSize);// invert y coord
+    /*
+    Properly draw--translate and rotate--the cube:
+    	- Move cube center of mass back to origin
+    	- Rotate by desired angle
+    	- Finally, move cube center of mass back
+    Recall: the last transformation applied in code is the one that's applied first
+    */
+    glTranslatef(cubeX, -cubeY, 0.0);// go back to original pos
+	glRotatef(cubeRotation, 1.0, 1.0, 1.0);
+	glTranslatef(-cubeX, cubeY, 0.0);// go to: origin
+	
+	cube(cubeX, -cubeY, 0.0, cubeSize);
 	
 	glFlush();
 }
