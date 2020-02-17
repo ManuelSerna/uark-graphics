@@ -32,6 +32,7 @@ float cubeY = 0.0;
 float cubeSize = 5.0;
 float cubeRotation = 15.0;// rotation of cube in deg
 
+
 using namespace std;
 
 
@@ -150,14 +151,24 @@ void timer(int value)
 //================================
 // Idle callback for OpenGL
 //================================
+int counter = 0;
 void idle()
 {
+   	//cout << "idle " << counter++ << endl;
+
+	// Redraw everything
+	glutPostRedisplay();
 }
 
 
 //================================
 // Mouse callback for OpenGL
 //================================
+
+// Capture mouse coordinates when button is pressed
+float ix = 0.0;
+float iy = 0.0;
+
 void mouse(int button, int state, int x, int y)
 {
     // Calculate scale factors
@@ -169,16 +180,21 @@ void mouse(int button, int state, int x, int y)
     {
         cubeX = MIN_X_VIEW + x * xScale;
         cubeY = MIN_Y_VIEW + y * yScale;
+        
+        ix = MIN_X_VIEW + x * xScale;
+		iy = MIN_Y_VIEW + y * yScale;
     }
-
 
     // TODO: When user lets go of button, launch brick
     // Mouse button let go
-    //if (state == GLUT_UP)
-    //{
-    //}
+    if (state == GLUT_UP)
+    {
+    	cout << "let go!" << endl;
+    	cubeX = ix;
+    	cubeY = iy;
+    }
 
-    // Update display
+    // Redraw everything
     glutPostRedisplay();
 }
 
@@ -196,7 +212,8 @@ void motion(int x, int y)
     cubeX = MIN_X_VIEW + x * xScale;
     cubeY = MIN_Y_VIEW + y * yScale;
     
-    glutPostRedisplay();// update for smooth motion
+    // Redraw everything
+    glutPostRedisplay();
 }
 
 
@@ -239,7 +256,7 @@ int main(int argc, char *argv[])
 	glutInitWindowSize(X_SCREEN, Y_SCREEN);
 	glutInitWindowPosition(80, 80);
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT_DEPTH);
-	glutCreateWindow("Graphics Project 2--Serna-Aguilera");
+	glutCreateWindow("Graphics Project 3--Serna-Aguilera");
 	
     // OpenGL functions with callbacks
     glutIdleFunc(idle);
