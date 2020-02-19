@@ -22,6 +22,8 @@
 #define X_SCREEN 500
 #define Y_SCREEN 500
 
+#define SPEED 0.05
+
 #define SLEEP_TIME 20
 
 GLenum mode = GL_POLYGON;
@@ -32,8 +34,19 @@ float cubeY = 0.0;
 float cubeSize = 5.0;
 float cubeRotation = 15.0;// rotation of cube in deg
 
+float vX = 0.0;
+float vY = 0.0;
 
 using namespace std;
+
+
+//================================
+// Get random number from range [min..max]
+//================================
+float getRandomValue(float min, float max)
+{
+	return rand() * (max - min) / RAND_MAX + min;
+}
 
 
 //================================
@@ -44,6 +57,9 @@ void init()
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 	glEnable(GL_DEPTH_TEST);
+	
+	//vX = getRandomValue(-SPEED, SPEED);// start with random velocity
+	//vY = getRandomValue(-SPEED, SPEED);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -145,16 +161,40 @@ void cube(float midx, float midy, float midz, float size)
 //================================
 void timer(int value)
 {
+	// TODO: simulate physics with timer OR idle callback
 }
 
 
 //================================
 // Idle callback for OpenGL
 //================================
-int counter = 0;
 void idle()
 {
-   	//cout << "idle " << counter++ << endl;
+	float bounce = -1.0;
+
+	// TODO: simulate physics with timer OR idle callback
+	// Update velocity
+	cubeX += vX;
+	cubeY += vY;
+	
+	// Bounce off edges of drawing window
+	//cout << cubeX << endl;
+	if (cubeX < MIN_X_VIEW)
+	{
+		vX *= bounce;// hit left wall
+	}
+	if (cubeX > MAX_X_VIEW)
+	{
+		vX *= bounce;// hit right wall
+	}
+	if (cubeY < MIN_Y_VIEW)
+	{
+		vY *= bounce;// hit bottom of window
+	}
+	if (cubeY > MAX_Y_VIEW)
+	{
+		vY *= bounce;// hit top of window
+	}
 
 	// Redraw everything
 	glutPostRedisplay();
@@ -189,7 +229,11 @@ void mouse(int button, int state, int x, int y)
     // Mouse button let go
     if (state == GLUT_UP)
     {
-    	cout << "let go!" << endl;
+    	//cout << "mouse let go!" << endl;
+    	
+    	vX = (cubeX - ix) / 100.0;
+    	vY = (cubeY - iy) / 100.0;
+    	
     	cubeX = ix;
     	cubeY = iy;
     }
