@@ -22,9 +22,9 @@
 #define X_SCREEN 500
 #define Y_SCREEN 500
 
-#define SPEED 0.05
+#define SPEED 0.4
 
-#define SLEEP_TIME 20
+#define SLEEP_TIME 2
 
 GLenum mode = GL_POLYGON;
 
@@ -32,21 +32,13 @@ GLenum mode = GL_POLYGON;
 float cubeX = 0.0;
 float cubeY = 0.0;
 float cubeSize = 5.0;
-float cubeRotation = 15.0;// rotation of cube in deg
-
-float vX = 0.0;
+float cubeAngle = 15.0;// initial rotation angle
+float dAngle = 0.5;// speed of rotation
+float vX = 0.0;// speeds of the brick
 float vY = 0.0;
 
 using namespace std;
 
-
-//================================
-// Get random number from range [min..max]
-//================================
-float getRandomValue(float min, float max)
-{
-	return rand() * (max - min) / RAND_MAX + min;
-}
 
 
 //================================
@@ -57,9 +49,6 @@ void init()
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 	glEnable(GL_DEPTH_TEST);
-	
-	//vX = getRandomValue(-SPEED, SPEED);// start with random velocity
-	//vY = getRandomValue(-SPEED, SPEED);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -161,7 +150,44 @@ void cube(float midx, float midy, float midz, float size)
 //================================
 void timer(int value)
 {
-	// TODO: simulate physics with timer OR idle callback
+	float bounce = -1.0;
+	float step = 0.2;// controls how fast rotation increases by
+	
+	// Update velocity
+	cubeX += vX;
+	cubeY += vY;
+	
+	// Update rotation
+	if (cubeAngle > 359.9)
+	{
+		cubeAngle = 0.0;
+	}
+	
+	// Bounce perfectly off edges of drawing window
+	if (cubeX < MIN_X_VIEW)
+	{
+		vX *= bounce;// hit left wall
+		dAngle += step;
+	}
+	if (cubeX > MAX_X_VIEW)
+	{
+		vX *= bounce;// hit right wall
+		dAngle += step;
+	}
+	if (cubeY < MIN_Y_VIEW)
+	{
+		vY *= bounce;// hit bottom of window
+		dAngle += step;
+	}
+	if (cubeY > MAX_Y_VIEW)
+	{
+		vY *= bounce;// hit top of window
+		dAngle += step;
+	}
+	
+	// Redraw everything
+	glutPostRedisplay();
+	glutTimerFunc(SLEEP_TIME, timer, 0);
 }
 
 
@@ -170,15 +196,16 @@ void timer(int value)
 //================================
 void idle()
 {
+	// NOTE: idle callback too fast, use timer callback
+	// with faster speed.
+	
 	float bounce = -1.0;
-
-	// TODO: simulate physics with timer OR idle callback
+	
 	// Update velocity
 	cubeX += vX;
 	cubeY += vY;
 	
-	// Bounce off edges of drawing window
-	//cout << cubeX << endl;
+	// Bounce perfectly off edges of drawing window
 	if (cubeX < MIN_X_VIEW)
 	{
 		vX *= bounce;// hit left wall
@@ -205,37 +232,49 @@ void idle()
 // Mouse callback for OpenGL
 //================================
 
-// Capture mouse coordinates when button is pressed
-float ix = 0.0;
-float iy = 0.0;
+// Coordinates for when mouse button is pressed and then let go
+float pressX = 0.0;
+float pressY = 0.0;
+float relX = 0.0;
+float relY = 0.0;
 
 void mouse(int button, int state, int x, int y)
 {
     // Calculate scale factors
     float xScale = (MAX_X_VIEW - MIN_X_VIEW)/(float)X_SCREEN;
     float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/(float)Y_SCREEN;
+    
+    // Calculate transformed x and y coords: tx and ty
+    float tx = float(MIN_X_VIEW + x * xScale);
+    float ty = float(MIN_Y_VIEW + y * yScale);
 
     // When mouse button is clicked
     if (state == GLUT_DOWN)
     {
-        cubeX = MIN_X_VIEW + x * xScale;
-        cubeY = MIN_Y_VIEW + y * yScale;
-        
-        ix = MIN_X_VIEW + x * xScale;
-		iy = MIN_Y_VIEW + y * yScale;
+    	pressX = tx;
+    	pressY = ty;
+    
+    	// Cube does not move when user is dragging it
+		vX = 0.0;
+		vY = 0.0;
     }
-
-    // TODO: When user lets go of button, launch brick
+    
     // Mouse button let go
     if (state == GLUT_UP)
     {
-    	//cout << "mouse let go!" << endl;
+    	relX = tx;
+    	relY = ty;
+		
+    	// Calculate change in distance
+    	float dX = relX - pressX;
+    	float dY = relY - pressY;
     	
-    	vX = (cubeX - ix) / 100.0;
-    	vY = (cubeY - iy) / 100.0;
+    	// Launch brick in the opposite direction--slingshot
+    	vX = -1.0 * dX / 100.0;
+    	vY = -1.0 * dY / 100.0;
     	
-    	cubeX = ix;
-    	cubeY = iy;
+    	cubeX = tx;
+    	cubeY = ty;
     }
 
     // Redraw everything
@@ -275,13 +314,14 @@ void display()
     
     /*
     Properly draw--translate and rotate--the cube:
-    	- Move cube center of mass back to origin
+    	- Move center of mass back to origin
     	- Rotate by desired angle
-    	- Finally, move cube center of mass back
+    	- Finally, move center of mass back
     Recall: the last transformation applied in code is the one that's applied first
     */
     glTranslatef(cubeX, -cubeY, 0.0);// go back to original pos
-	glRotatef(cubeRotation, 1.0, 1.0, 1.0);
+    cubeAngle += dAngle;
+	glRotatef(cubeAngle, 1.0, 1.0, 1.0);
 	glTranslatef(-cubeX, cubeY, 0.0);// go to: origin
 	
 	cube(cubeX, -cubeY, 0.0, cubeSize);
@@ -302,14 +342,15 @@ int main(int argc, char *argv[])
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT_DEPTH);
 	glutCreateWindow("Graphics Project 3--Serna-Aguilera");
 	
+	init();
+	
     // OpenGL functions with callbacks
-    glutIdleFunc(idle);
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
     glutDisplayFunc(display);
     glutTimerFunc(SLEEP_TIME, timer, 0);
-
-    init();
+    //glutIdleFunc(idle);
+	
 	glutMainLoop();
 
     return 0;

@@ -6,5 +6,5 @@ This programming assignment uses the OpenGL library to display simple charts (do
 
 ## Angry Brick
 This programming assignment is split into two projects:
-* Project 2: Draw a colorful brick that can be moved with the dragging of the mouse.
-* Project 3: coming soon
+* Project 2: Draw a colorful brick that can be moved by dragging the mouse.
+* Project 3: Launch the colorful brick like a slingshot. The cube bounces off the walls and rotates ever so faster.
