@@ -12,12 +12,11 @@
 
 // Global constants
 // Drawing window x, y, z ranges
-// TODO: adjust axis boundaries to see which depth is best
 #define MIN_X_VIEW -25
 #define MAX_X_VIEW 25
 #define MIN_Y_VIEW -25
 #define MAX_Y_VIEW 25
-#define MIN_Z_VIEW -10
+#define MIN_Z_VIEW -10 // TODO: adjust z-boundaries alongside z-scaling to not have the penny be so thick
 #define MAX_Z_VIEW 10
 
 // OpenGL window coordinates
@@ -41,14 +40,15 @@ float zAngle = 5.0;
 
 using namespace std;
 
-// TODO: load penny in correct orientation(?), right now it is being shown upside down
+// OPTIONAL TODO: load penny in correct orientation(?), right now it is being shown upside down
 // DONE 2: store depth data in a polygon mesh
 //  - NOTE: scale depth values range: [0...255], image size: [0...499, 0...499]
 //  - DONE 2.1: scale depth values into an appropriate range
 // DONE 3: display the model surface.
 // DONE 4: read the color image and store the color info
-// TODO 5: display the image using phong shading (create a third callback for this)
-// TODO 6: extend keyboard callback so user can switch between polygon mesh and shaded penny
+// TODO 5: with the color info saved, we can color the polygons on the penny surface with the color data (see project prompt for more info)
+// TODO 6: display the image using phong shading (create a third callback for this)
+// TODO 7: extend keyboard callback so user can switch between polygon mesh and shaded penny
 
 //================================
 // Read values from depth file
@@ -60,6 +60,7 @@ void readDepthData(string inputFile)
     int y = 0;
     
     // Calculate scale factor for depth (for z-axis)
+    // TODO: adjust z-scaling so penny does not appear thick
     float zScale = (MAX_Z_VIEW - MIN_Z_VIEW)/float(X_SCREEN);
     
     // Open depth file
