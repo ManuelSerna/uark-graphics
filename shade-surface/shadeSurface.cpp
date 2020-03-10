@@ -46,8 +46,8 @@ using namespace std;
 //  - DONE 2.1: scale depth values into an appropriate range
 // DONE 3: display the model surface.
 // DONE 4: read the color image and store the color info
-// intermediate TODO: correct surface storage and output, right now, I have the penny being mirrored when rendered
-// TODO 5: with the color info saved, we can color the polygons on the penny surface with the color data (see project prompt for more info)
+// intermediate DONE: correct surface storage and output, right now, I have the penny being mirrored when rendered
+// DONE 5: with the color info saved, we can color the polygons on the penny surface with the color data (see project prompt for more info)
 // TODO 6: display the image using phong shading (create a third callback for this)
 // TODO 7: extend keyboard callback so user can switch between polygon mesh and shaded penny
 
@@ -87,12 +87,13 @@ void readDepthData(string inputFile)
             data >> input;
             depth[y][x] = minZ + stof(input) * zScale;
             
-            y++;
+            // Read image left->right, top-down
+            x++;
 
-            if (y >= YDIM)
+            if (x >= XDIM)
             {
-                y = 0;
-                x++;
+                x = 0;
+                y++;
             }
         }
     }
@@ -145,12 +146,13 @@ void readImageData(string inputFile)
             image[y][x][1] = stof(tokens[1]);// g
             image[y][x][2] = stof(tokens[2]);// b
             
-            y++;
-            
-            if (y >= YDIM)
+            // Read image left->right, top-down
+            x++;
+
+            if (x >= XDIM)
             {
-                y = 0;
-                x++;
+                x = 0;
+                y++;
             }
         }
     }
@@ -188,26 +190,40 @@ void init()
 //================================
 void displaySurface(float xScale, float yScale)
 {
-    for (int x = 0; x < XDIM-1; x++)
+    int step = 8;
+    
+    glColor3f(1.0, 1.0, 1.0);
+    
+    for (int y = 0; y < YDIM-1; y++)
     {
-        for (int y = 0; y < YDIM-1; y++)
-        {            
-            glColor3f(1.0, 0.0, 0.0);
-            
-            // Get 3D point
-            float tx = MIN_X_VIEW + x * xScale;
-            float ty = MIN_Y_VIEW + y * yScale;
-            float z1 = (float)(depth[y][x]);
-            float z2 = (float)(depth[y][x+1]);
-            float z3 = (float)(depth[y+1][x+1]);
-            float z4 = (float)(depth[y+1][x]);
-            
-            glBegin(GL_LINE_LOOP);
-            glVertex3f(tx, ty, z1);
-            glVertex3f(tx, ty, z2);
-            glVertex3f(tx, ty, z3);
-            glVertex3f(tx, ty, z4);
-            glEnd();
+        for (int x = 0; x < XDIM-1; x++)
+        {
+            if (x % step == 0)
+            {
+                // Get 3D patch for surface
+                float tx1 = MIN_X_VIEW + x * xScale;
+                float ty1 = MIN_Y_VIEW + y * yScale;
+                float z1 = (float)(depth[y][x]);
+
+                float tx2 = MIN_X_VIEW + (x+1) * xScale;
+                float ty2 = ty1;
+                float z2 = (float)(depth[y+1][x]);
+
+                float tx3 = tx2;
+                float ty3 = MIN_Y_VIEW + (y+1) * yScale;
+                float z3 = (float)(depth[y+1][x+1]);
+
+                float tx4 = MIN_X_VIEW + x * xScale;
+                float ty4 = ty3;
+                float z4 = (float)(depth[y][x+1]);
+                
+                glBegin(GL_LINE_LOOP);
+                glVertex3f(ty1, tx1, z1);
+                glVertex3f(ty2, tx2, z2);
+                glVertex3f(ty3, tx3, z3);
+                glVertex3f(ty4, tx4, z4);
+                glEnd();
+            }
         }
     }
 }
@@ -217,42 +233,41 @@ void displaySurface(float xScale, float yScale)
 //================================
 void displayColor(float xScale, float yScale)
 {
-    for (int x = 0; x < XDIM-1; x++)
+    for (int y = 0; y < YDIM-1; y++)
     {
-        for (int y = 0; y < YDIM-1; y++)
+        for (int x = 0; x < XDIM-1; x++)
         {
             // Define color
-
-            float r = (image[x][y][0] + image[x][y+1][0] + image[x+1][y+1][0] + image[x+1][y][0])/(4.0*255.0);
-            float g = (image[x][y][1] + image[x][y+1][1] + image[x+1][y+1][1] + image[x+1][y][1])/(4.0*255.0);
-            float b = (image[x][y][2] + image[x][y+1][2] + image[x+1][y+1][2] + image[x+1][y][2])/(4.0*255.0);
+            float r = (image[y][x][0] + image[y][x+1][0] + image[y+1][x+1][0] + image[y+1][x][0])/(4.0*255.0);
+            float g = (image[y][x][1] + image[y][x+1][1] + image[y+1][x+1][1] + image[y+1][x][1])/(4.0*255.0);
+            float b = (image[y][x][2] + image[y][x+1][2] + image[y+1][x+1][2] + image[y+1][x][2])/(4.0*255.0);
             
             glColor3f(r, g, b);
             
             // Get 3D points for 3D polygon
             float tx1 = MIN_X_VIEW + x * xScale;
             float ty1 = MIN_Y_VIEW + y * yScale;
-            float z1 = (float)(depth[x][y]);
-            
+            float z1 = (float)(depth[y][x]);
+
             float tx2 = MIN_X_VIEW + (x+1) * xScale;
             float ty2 = ty1;
-            float z2 = (float)(depth[x+1][y]);
-            
+            float z2 = (float)(depth[y+1][x]);
+
             float tx3 = tx2;
             float ty3 = MIN_Y_VIEW + (y+1) * yScale;
-            float z3 = (float)(depth[x+1][y+1]);
-            
+            float z3 = (float)(depth[y+1][x+1]);
+
             float tx4 = MIN_X_VIEW + x * xScale;
             float ty4 = ty3;
-            float z4 = (float)(depth[x][y+1]);
+            float z4 = (float)(depth[y][x+1]);
             
             // Draw polygon patch
             glBegin(GL_POLYGON);
             
-            glVertex3f(tx1, ty1, z1);
-            glVertex3f(tx2, ty2, z2);
-            glVertex3f(tx3, ty3, z3);
-            glVertex3f(tx4, ty4, z4);
+            glVertex3f(ty1, tx1, z1);
+            glVertex3f(ty2, tx2, z2);
+            glVertex3f(ty3, tx3, z3);
+            glVertex3f(ty4, tx4, z4);
             
             glEnd();
         }
@@ -317,6 +332,12 @@ void keyboard(unsigned char key, int x, int y)
     {
         zAngle += 5;
     }
+    // Toggle between displays
+    else if (key == 's')
+    {
+        
+    }
+    
     
     // Redraw everything
     glutPostRedisplay();
