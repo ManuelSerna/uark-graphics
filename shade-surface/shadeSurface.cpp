@@ -1,7 +1,7 @@
 //********************************
 // Computer Graphics Project 4: Phong Shading
 // Author: Manuel Serna-Aguilera
-// Credit: libim library and image.cpp created by Dr. John Gauch
+// Credit: libim library, image.cpp, and shading.cpp created by Dr. John Gauch
 //********************************
 
 #include <bits/stdc++.h> // for tokenizing strings
@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#include "shading.cpp"
 
 // Global constants
 // Drawing window x, y, z ranges
@@ -26,12 +28,16 @@
 // Image dimensions
 #define XDIM 500
 #define YDIM 500
-
-
+#define ZDIM 500
 
 // Image arrays
 int image[YDIM][XDIM][3];
 int depth[YDIM][XDIM];
+
+// Surface normal arrays for x, y, and z axes
+float normX[YDIM][XDIM];
+float normY[YDIM][XDIM];
+float normZ[YDIM][XDIM];
 
 // Surface rotation angle variables
 float xAngle = 5.0;
@@ -48,8 +54,10 @@ using namespace std;
 // DONE 4: read the color image and store the color info
 // intermediate DONE: correct surface storage and output, right now, I have the penny being mirrored when rendered
 // DONE 5: with the color info saved, we can color the polygons on the penny surface with the color data (see project prompt for more info)
-// TODO 6: display the image using phong shading (create a third callback for this)
+// DONE 6: display the image using phong shading (create a third callback for this)
 // TODO 7: extend keyboard callback so user can switch between polygon mesh and shaded penny
+
+
 
 //================================
 // Read values from depth file
@@ -99,6 +107,45 @@ void readDepthData(string inputFile)
     }
     
     data.close();
+    
+    // Calculate scale factors
+    float xScale = (MAX_X_VIEW - MIN_X_VIEW)/float(X_SCREEN);
+    float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/float(Y_SCREEN);
+    
+    // Calculate surface normal vectors at each point
+    for (int y = 0; y < YDIM-1; y++)
+    {
+        for (int x = 0; x < XDIM-1; x++)
+        {
+            // Calculate basis vectors v1 and v2 for surface patch
+            // First point for basis vectors
+            float tx1 = MIN_X_VIEW + x * xScale;
+            float ty1 = MIN_Y_VIEW + y * yScale;
+            float z1 = (float)(depth[y][x]);
+            
+            // Calculate v1
+            // Endpoint for first vector v1 = [v1x,v1y,v1z]
+            float tx2 = MIN_X_VIEW + (x+1) * xScale;
+            float ty2 = ty1;
+            float z2 = (float)(depth[y+1][x]);
+            float v1x = tx2 - tx1;
+            float v1y = ty2 - ty1;
+            float v1z = z2 - z1;
+            
+            // Endpoint for second vector v2 = [v2x,v2y,v2z]
+            float tx4 = tx1;
+            float ty4 = MIN_Y_VIEW + (y+1) * yScale;
+            float z4 = (float)(depth[y][x+1]);
+            float v2x = tx4 - tx1;
+            float v2y = ty4 - ty1;
+            float v2z = z4 - z1;
+            
+            // Use cross product to get normal x,y,z components
+            normX[y][x] = v1y*v2z - v1z*v2y;
+            normY[y][x] = v1x*v2z - v1z*v2x;
+            normZ[y][x] = v1x*v2y - v1y*v2x;
+        }
+    }
 }
 
 
@@ -174,13 +221,17 @@ void init()
     glLoadIdentity();
     
     glOrtho(
-        MIN_X_VIEW, 
-        MAX_X_VIEW, 
-        MIN_Y_VIEW,  
-        MAX_Y_VIEW, 
-        MIN_Z_VIEW,
-        MAX_Z_VIEW
+        MIN_X_VIEW, MAX_X_VIEW, 
+        MIN_Y_VIEW, MAX_Y_VIEW, 
+        MIN_Z_VIEW, MAX_Z_VIEW
     );
+    
+    // Phong Shading setup
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_NORMALIZE);
+    init_light(GL_LIGHT0, 0, 1, 1, 0.5, 0.5, 0.5);
+    init_light(GL_LIGHT1, 0, 0, 1, 0.5, 0.5, 0.5);
+    init_light(GL_LIGHT2, 0, 1, 0, 0.5, 0.5, 0.5);
 }
 
 
@@ -275,6 +326,51 @@ void displayColor(float xScale, float yScale)
 }
 
 //================================
+// Display surface with Phong shading
+//================================
+void displayPhong(float xScale, float yScale)
+{
+    // Initialize material properties for Phong shading
+    init_material(Ka, Kd, Ks, 100 * Kp, 0.8, 0.6, 0.4);
+    
+    for (int y = 0; y < YDIM-1; y++)
+    {
+        for (int x = 0; x < XDIM-1; x++)
+        {
+            // Get 3D points for 3D polygon
+            float tx1 = MIN_X_VIEW + x * xScale;
+            float ty1 = MIN_Y_VIEW + y * yScale;
+            float z1 = (float)(depth[y][x]);
+
+            float tx2 = MIN_X_VIEW + (x+1) * xScale;
+            float ty2 = ty1;
+            float z2 = (float)(depth[y+1][x]);
+
+            float tx3 = tx2;
+            float ty3 = MIN_Y_VIEW + (y+1) * yScale;
+            float z3 = (float)(depth[y+1][x+1]);
+
+            float tx4 = MIN_X_VIEW + x * xScale;
+            float ty4 = ty3;
+            float z4 = (float)(depth[y][x+1]);
+            
+            // Draw normals and polygon patch
+            glBegin(GL_POLYGON);
+            glNormal3f(normX[y][x], normY[y][x], normZ[y][x]);
+            glVertex3f(ty1, tx1, z1);
+            glNormal3f(normX[y+1][x], normY[y+1][x], normZ[y+1][x]);
+            glVertex3f(ty2, tx2, z2);
+            glNormal3f(normX[y+1][x+1], normY[y+1][x+1], normZ[y+1][x+1]);
+            glVertex3f(ty3, tx3, z3);
+            glNormal3f(normX[y][x+1], normY[y][x+1], normZ[y][x+1]);
+            glVertex3f(ty4, tx4, z4);
+            
+            glEnd();
+        }
+    }
+}
+
+//================================
 // Display callback
 //================================
 void display()
@@ -295,7 +391,8 @@ void display()
 
     // Display object
     //displaySurface(xScale, yScale);
-    displayColor(xScale, yScale);
+    //displayColor(xScale, yScale);
+    displayPhong(xScale, yScale);
     
     glFlush();
 }
@@ -337,7 +434,6 @@ void keyboard(unsigned char key, int x, int y)
     {
         
     }
-    
     
     // Redraw everything
     glutPostRedisplay();
