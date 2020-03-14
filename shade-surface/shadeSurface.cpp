@@ -1,7 +1,7 @@
 //********************************
 // Computer Graphics Project 4: Phong Shading
 // Author: Manuel Serna-Aguilera
-// Credit: libim library, image.cpp, and shading.cpp created by Dr. John Gauch
+// Credit: libim and jpeg library, image.cpp, and shading.cpp created by Dr. John Gauch
 //********************************
 
 #include <bits/stdc++.h> // for tokenizing strings
@@ -14,12 +14,12 @@
 
 // Global constants
 // Drawing window x, y, z ranges
-#define MIN_X_VIEW -99
-#define MAX_X_VIEW 99
-#define MIN_Y_VIEW -99
-#define MAX_Y_VIEW 99
-#define MIN_Z_VIEW -99
-#define MAX_Z_VIEW 99
+#define MIN_X_VIEW -199
+#define MAX_X_VIEW 199
+#define MIN_Y_VIEW -199
+#define MAX_Y_VIEW 199
+#define MIN_Z_VIEW -199
+#define MAX_Z_VIEW 199
 
 // OpenGL window coordinates
 #define X_SCREEN 500
@@ -31,8 +31,8 @@
 #define ZDIM 500
 
 // Image arrays
-int image[YDIM][XDIM][3];
-int depth[YDIM][XDIM];
+int image[YDIM][XDIM][3];// store color
+int depth[YDIM][XDIM];// store depth
 
 // Surface normal arrays for x, y, and z axes
 float normX[YDIM][XDIM];
@@ -44,9 +44,12 @@ float xAngle = 5.0;
 float yAngle = 5.0;
 float zAngle = 5.0;
 
+// User choice for display
+char choice = '1';// default choice is wireframe
+
 using namespace std;
 
-// DONE 1: read jpeg files with Dr. Gauch's code
+// DONE 1: read jpeg files with Dr. Gauch's img processing code
 // DONE 2: store depth data in a polygon mesh
 //  - NOTE: scale depth values range: [0...255], image size: [0...499, 0...499]
 //  - DONE 2.1: scale depth values into an appropriate range
@@ -55,7 +58,7 @@ using namespace std;
 // intermediate DONE: correct surface storage and output, right now, I have the penny being mirrored when rendered
 // DONE 5: with the color info saved, we can color the polygons on the penny surface with the color data (see project prompt for more info)
 // DONE 6: display the image using phong shading (create a third callback for this)
-// TODO 7: extend keyboard callback so user can switch between polygon mesh and shaded penny
+// DONE 7: extend keyboard callback so user can switch between polygon mesh and shaded penny
 
 
 
@@ -70,8 +73,8 @@ void readDepthData(string inputFile)
     
     // Calculate scale factor for thickness of penny
     float minZ = 0.0;// min z range for penny
-    float maxZ = 9.9;// max z range for penny
-    float zScale = (maxZ - minZ)/150.0;
+    float maxZ = 29.9;// max z range for penny
+    float zScale = (maxZ - minZ)/((MAX_Z_VIEW-MIN_Z_VIEW)/2.0);
     
     // Open depth file
     ifstream data;
@@ -188,7 +191,7 @@ void readImageData(string inputFile)
                 tokens.push_back(intermediate);
             }
             
-            // Populate color array contents
+            // Populate color array
             image[y][x][0] = stof(tokens[0]);// r
             image[y][x][1] = stof(tokens[1]);// g
             image[y][x][2] = stof(tokens[2]);// b
@@ -221,17 +224,17 @@ void init()
     glLoadIdentity();
     
     glOrtho(
-        MIN_X_VIEW, MAX_X_VIEW, 
-        MIN_Y_VIEW, MAX_Y_VIEW, 
-        MIN_Z_VIEW, MAX_Z_VIEW
+        MIN_X_VIEW*3/2, MAX_X_VIEW*3/2, 
+        MIN_Y_VIEW*3/2, MAX_Y_VIEW*3/2, 
+        MIN_Z_VIEW*3/2, MAX_Z_VIEW*3/2
     );
+    
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_NORMALIZE);
     
     // Phong Shading setup
     glShadeModel(GL_SMOOTH);
     glEnable(GL_NORMALIZE);
-    init_light(GL_LIGHT0, 0, 1, 1, 0.5, 0.5, 0.5);
-    init_light(GL_LIGHT1, 0, 0, 1, 0.5, 0.5, 0.5);
-    init_light(GL_LIGHT2, 0, 1, 0, 0.5, 0.5, 0.5);
 }
 
 
@@ -241,9 +244,9 @@ void init()
 //================================
 void displaySurface(float xScale, float yScale)
 {
-    int step = 8;
+    int step = 6;
     
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(1.0, 0.0, 0.0);
     
     for (int y = 0; y < YDIM-1; y++)
     {
@@ -329,10 +332,7 @@ void displayColor(float xScale, float yScale)
 // Display surface with Phong shading
 //================================
 void displayPhong(float xScale, float yScale)
-{
-    // Initialize material properties for Phong shading
-    init_material(Ka, Kd, Ks, 100 * Kp, 0.8, 0.6, 0.4);
-    
+{    
     for (int y = 0; y < YDIM-1; y++)
     {
         for (int x = 0; x < XDIM-1; x++)
@@ -389,10 +389,23 @@ void display()
     float xScale = (MAX_X_VIEW - MIN_X_VIEW)/float(X_SCREEN);
     float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/float(Y_SCREEN);
 
-    // Display object
-    //displaySurface(xScale, yScale);
-    //displayColor(xScale, yScale);
-    displayPhong(xScale, yScale);
+    // Display object according to user choice
+    if (choice == '1')
+    {
+        glDisable(GL_LIGHTING);
+        displaySurface(xScale, yScale);
+    }
+    else if (choice == '2')
+    {
+        glDisable(GL_LIGHTING);
+        displayColor(xScale, yScale);
+    }
+    else
+    {
+        // Initialize material properties for Phong shading (lighting re-enabled in keyboard callback so as to not keep calling it in the display)
+        init_material(Ka, Kd, Ks, 100 * Kp, 0.8, 0.6, 0.4);
+        displayPhong(xScale, yScale);
+    }
     
     glFlush();
 }
@@ -429,10 +442,30 @@ void keyboard(unsigned char key, int x, int y)
     {
         zAngle += 5;
     }
-    // Toggle between displays
-    else if (key == 's')
+    
+    // Toggle between displays via user interface (on cmd)
+    if (key == '1')
     {
+        // Display wireframe of penny
+        cout << "  Displaying wire-frame of object.\n";
+        choice = key;
+    }
+    else if (key == '2')
+    {
+        // Display colored penny
+        cout << "  Displaying colored object.\n";
+        choice = key;
+    }
+    else if (key == '3')
+    {
+        // Display with Phong shading
+        cout << "  Displaying object with Phong shading.\n";
+        choice = key;
         
+        // Re-enable lighting
+        init_light(GL_LIGHT0, 0, 1, 1, 0.5, 0.5, 0.5);
+        init_light(GL_LIGHT1, 0, 0, 1, 0.5, 0.5, 0.5);
+        init_light(GL_LIGHT2, 0, 1, 0, 0.5, 0.5, 0.5);
     }
     
     // Redraw everything
