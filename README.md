@@ -13,3 +13,6 @@ Project _Angry Brick_ is split into two parts.
 
 ## Shade Surface
 _Shade Surface_ reads the color and depth images of a penny and can either display a wireframe, color, or Phong-shaded version of the penny.
+
+## Texture Map
+__COMING SOON__
