@@ -5,12 +5,34 @@
 //********************************
 
 /*
-TODO 1: Read images with Dr. Gauch's img processing code
-(...)
+Tasks: (look at project prompt)
+
+DONE 1: Read images with Dr. Gauch's img processing code
+DONE 2: Store selected image data in 1D texture array (unsigned byte)
+
+TODO 3: Create data structure that represents the falling cubes
+    - Keep track of:
+        cube position (pX, pY, pZ)
+        cube velocity (vX, vY, vZ)
+        cube rotation angles (angleX, angleY, angleZ)
+        cube radius r (of the sphere that encapsulates the cube)
+        openGL texture array for the cube
+        
+    - the init() fuction should initialize a global data structure containing information for the N cubes
+
+TODO 4: loop over the N cubes in the scene and display the falling cubes at the correct location and orientation
+
+TODO 5: simulate "raining cats and dogs"
+    - to update cube locations, either define an idle or timer callback that loops over the N cubes (update pos using vel info, and increment angles by a small constant amount)
+
 */
 
+// Required libs for random number generation
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -46,95 +68,28 @@ using namespace std;
 
 
 //================================
-// Read image file (jpeg)
-// Input: name of image file (directory included)
-// Return: 3D array to hold color intensities for RGB channels
+// Read image/texture jpg file
 //================================
-void readImage(string imageName, int data[YDIM][XDIM][3])
+void initTexture(char *name, unsigned char *&texture)
 {
-    // Read imamge file
     im_color image;
-    //cout << "input file = " << imageName << endl;
-    image.ReadJpg(imageName);
+    image.ReadJpg(name);
     
-    // Get image dimensions
-    int xdim = image.R.Xdim;
-    int ydim = image.R.Ydim;
-    //cout << "xdim = " << xdim << endl;
-    //cout << "ydim = " << ydim << endl;
+    // Use malloc from stdlib to allocate (XDIM*YDIM*3) bytes of storage (malloc returns a pointer)
+    texture = (unsigned char *)malloc((unsigned int)(XDIM*YDIM*3));
     
-    // Save color values
+    // Every three indices stores RGB values for one pixel
+    int i = 0;
     for (int y = 0; y < YDIM; y++)
     {
         for (int x = 0; x < XDIM; x++)
         {
-            data[y][x][0] = image.R.Data2D[y][x];
-            data[y][x][1] = image.G.Data2D[y][x];
-            data[y][x][2] = image.B.Data2D[y][x];
+            texture[i++] = (unsigned char)(image.R.Data2D[y][x]);
+            texture[i++] = (unsigned char)(image.G.Data2D[y][x]);
+            texture[i++] = (unsigned char)(image.B.Data2D[y][x]);
         }
     }
 }
-
-
-
-//================================
-// Read values from color (RGB) file
-//================================
-/*
-void readImageData(string inputFile, image[XDIM][YDIM][3])
-{
-    // Counters for array
-    int x = 0;
-    int y = 0;
-    
-    string line;
-    
-    ifstream data;
-    data.open(inputFile);
-    
-    // Check if file read goes wrong
-    if(!data)
-    {
-        cout << "Error: could not read file. Bailing.";
-        return;
-    }
-    
-    // Read RGB image file
-    // We are expecting, for each line, three values for the RGB components
-    if(data.is_open())
-    {
-        while(getline(data, line))
-        {
-            // Extract tokens from each line
-            vector <string> tokens;
-            stringstream check1(line);// stringstream obj
-            string intermediate;
-        
-            // Tokenize line, split along space " "
-            while(getline(check1, intermediate, ' '))
-            {
-                tokens.push_back(intermediate);
-            }
-            
-            // Populate color array
-            image[y][x][0] = stof(tokens[0]);// r
-            image[y][x][1] = stof(tokens[1]);// g
-            image[y][x][2] = stof(tokens[2]);// b
-            
-            // Read image left->right, top-down
-            x++;
-
-            if (x >= XDIM)
-            {
-                x = 0;
-                y++;
-            }
-        }
-    }
-    
-    data.close();
-}
-*/
 
 
 
@@ -154,6 +109,39 @@ void init()
         MIN_Y_VIEW, MAX_Y_VIEW, 
         MIN_Z_VIEW, MAX_Z_VIEW
     );
+    
+    string num;
+    string file;
+    
+    // Initialize textures
+    unsigned char *catTexture;
+    unsigned char *dogTexture;
+    
+    string directory = "cats_dogs/";
+    
+    // Get cat file
+    num = to_string(rand() % 10);// get random file #
+    file = directory + "cat" + num + ".jpg";// set file directory
+    char catFile[file.size()+1];// convert string to char [] for appropriate parameter data type
+    strcpy(catFile, file.c_str());
+    initTexture((char *)catFile, catTexture);
+    
+    // Get dog file
+    num = to_string(rand() % 10);
+    file = directory + "dog" + num + ".jpg";
+    char dogFile[file.size()+1];
+    strcpy(dogFile, file.c_str());
+    initTexture((char *)dogFile, dogTexture);
+    
+    glEnable(GL_TEXTURE_2D);
+    glTexParameterf(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, XDIM, YDIM, 0, GL_RGB, GL_UNSIGNED_BYTE, catTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, XDIM, YDIM, 0, GL_RGB, GL_UNSIGNED_BYTE, dogTexture);
 }
 
 
@@ -194,6 +182,10 @@ void keyboard(unsigned char key, int x, int y)
 //================================
 int main(int argc, char *argv[])
 {
+    // Initialize random number generation
+    srand (time(NULL));
+    
+    // OpenGL setup
     glutInit(&argc, argv);
     glutInitWindowSize(X_SCREEN, Y_SCREEN);
     glutInitWindowPosition(100, 100);
@@ -201,9 +193,6 @@ int main(int argc, char *argv[])
     glutCreateWindow("Texture Mapping");
     
     init();
-    
-    int data1[YDIM][XDIM][3];
-    readImage("cats_dogs/cat0.jpg", data1);
 
     glutMainLoop();
     
