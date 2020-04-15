@@ -3,9 +3,9 @@
 #*********************************
 
 opengl='-lGL -lGLU -lglut'
-gauchlib='libim/libim.a jpeg/libjpeg.a' # Reference 
+gauchlib='libim/libim.a jpeg/libjpeg.a'
 
-g++ -Wall -o textureMap textureMap.cpp $gauchlib $opengl
+g++ -Wall -o textureMap textureMap.cpp cubeTexture.cpp $gauchlib $opengl
 ./textureMap
 echo "Done."
 
