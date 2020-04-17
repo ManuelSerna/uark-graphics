@@ -2,10 +2,14 @@
 // Cube Texture Class Header
 //********************************
 
+#include <iostream>
+
 // Headers needed for random num generation
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include <string>
 
 #include "libim/im_color.h"// read jpg images
 
@@ -34,8 +38,11 @@ class cubeTexture
 public:
     cubeTexture(string, string);
     ~cubeTexture();
+    void reset();
     
     // Public attributes
+    string file;// 
+    
     float xPos;// positions
     float yPos;
     float zPos;

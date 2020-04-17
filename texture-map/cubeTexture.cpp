@@ -7,7 +7,7 @@
 
 
 //================================
-// Read a(n) image/texture jpg file
+// Read some image/texture jpg file
 //================================
 void initTexture(char *name, unsigned char *&texture)
 {
@@ -31,6 +31,25 @@ void initTexture(char *name, unsigned char *&texture)
 }
 
 
+
+//================================
+// Return -1 or 1 for random direction
+//================================
+int getDirection()
+{
+    int num = (rand() % 2);
+    if (num == 0)
+    {
+        return -1;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+
+
 //================================
 // Constructor
 // - initialize all values to fit in OpenGL window
@@ -42,37 +61,44 @@ Parameters:
 //================================
 cubeTexture::cubeTexture(string name, string num)
 {
-    // Initialize random number generation
-    srand (time(NULL));
-    
-    // num = to_string(rand() % 10);
     float xScale = (MAX_X_VIEW - MIN_X_VIEW)/(float)X_SCREEN;
-    float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/(float)Y_SCREEN;
-    float zScale = (MAX_Z_VIEW - MIN_Z_VIEW)/(float)Z_SCREEN;
+    //float yScale = (MAX_Y_VIEW - MIN_Y_VIEW)/(float)Y_SCREEN;
+    //float zScale = (MAX_Z_VIEW - MIN_Z_VIEW)/(float)Z_SCREEN;
     
     // Set random position
-    xPos = MIN_X_VIEW + (rand() % X_SCREEN) * xScale;
-    yPos = MIN_Y_VIEW + (rand() % Y_SCREEN) * yScale;;
-    zPos = MIN_Z_VIEW + (rand() % Z_SCREEN) * zScale;;
+    xPos = float(MIN_X_VIEW + (rand() % X_SCREEN) * xScale);
+    //yPos = float(MIN_Y_VIEW + (rand() % Y_SCREEN) * yScale);// start near the top of screen in y-direction
+    int maxDrop = 10.0;// max distance from top of drawing window (MAX_Y_VIEW)
+    yPos = float(rand() % maxDrop)*-1 + MAX_Y_VIEW;
+    //zPos = float(MIN_Z_VIEW + 1 * zScale);
+    zPos=0.0;
     
     // Set random velocities
-    vX = float(rand() % 99);
-    vY = float(rand() % 99);
-    vZ = float(rand() % 99);
+    int maxVelocity = 5;
+    vX = float(rand() % maxVelocity) * getDirection();
+    vY = -1 * float(rand() % maxVelocity) - 1;
+    vZ = float(rand() % maxVelocity) * getDirection();
     
     // Set random cube angles
-    angleX = float(rand() % 359);
-    angleY = float(rand() % 359);
-    angleZ = float(rand() % 359);
+    int maxAngle = 180;
+    angleX = float(rand() % maxAngle);
+    angleY = float(rand() % maxAngle);
+    angleZ = float(rand() % maxAngle);
     
     // Set random cube radius
-    r = float(rand() % 42) + 8.0;
+    int maxRadius = 20;
+    r = float(rand() % maxRadius) + 10.0;
     
     // 1D texture array of usigned bytes
-    string file = "cats_dogs/" + name + num + ".jpg";// full file name
+    file = "cats_dogs/" + name + num + ".jpg";// full file name
+    //cout << "file name: " << file << endl;
     char fileName[file.size()+1];
     strcpy(fileName, file.c_str());
     initTexture((char *)fileName, texture);// initialize texture unsigned byte array for this cube object
+    
+    //cout << "coords for" << file << ": " << "(" << xPos << "," << yPos << "," << zPos << ")" << endl;
+    //cout << "velocities " << file << ": " << "(" << vX << "," << vY << "," << vZ << ")" << endl;
+    //cout << "angles (x, y ,z): " << "(" << angleX << "," << angleY << "," << angleZ << ")" << endl;
 }
 
 //================================
@@ -80,4 +106,29 @@ cubeTexture::cubeTexture(string name, string num)
 //================================
 cubeTexture::~cubeTexture()
 {
+}
+
+//================================
+// Reset cube position
+//================================
+void cubeTexture::reset()
+{    
+    // Reset position
+    float xScale = (MAX_X_VIEW - MIN_X_VIEW)/(float)X_SCREEN;
+    int maxDrop = 20;
+    
+    xPos = float(MIN_X_VIEW + (rand() % X_SCREEN) * xScale);
+    yPos = float(rand() % maxDrop)*-1 + MAX_Y_VIEW;
+    
+    // Reset velocities
+    int maxVelocity = 10;
+    vX = float(rand() % maxVelocity) * getDirection() * 0.25;
+    vY = -1 * float(rand() % maxVelocity) - 1;
+    vZ = float(rand() % maxVelocity) * getDirection();
+    
+    // Set random cube angles
+    int maxAngle = 180;
+    angleX = float(rand() % maxAngle);
+    angleY = float(rand() % maxAngle);
+    angleZ = float(rand() % maxAngle);
 }
