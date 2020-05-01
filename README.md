@@ -15,4 +15,4 @@ Project _Angry Brick_ is split into two parts.
 _Shade Surface_ reads the color and depth images of a penny and can either display a wireframe, color, or Phong-shaded version of the penny.
 
 ## Texture Map
-__COMING SOON__
+This project maps images of kittens and puppies to cubes. These cubes then fall at random velocities to simulate "raining cats and dogs."
