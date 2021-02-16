@@ -215,7 +215,7 @@ void draw_spline(int start, int count)
 }
 
 //---------------------------------------
-// Display callback for OpenGL
+// Draw Catmull-Rom curve
 //---------------------------------------
 void draw_catmullrom(int start, int count)
 {
@@ -231,7 +231,7 @@ void draw_catmullrom(int start, int count)
     float Cx[4] = {0.0, 0.0, 0.0, 0.0};
     float Cy[4] = {0.0, 0.0, 0.0, 0.0};
    
-    // 2: Calculate polynomial
+    // Calculate polynomial
     for(int i=0; i<4; i++)
     {
         for(int j=0; j<4; j++)
@@ -241,7 +241,7 @@ void draw_catmullrom(int start, int count)
         }
     }
     
-    // 3: Connect control points
+    // Connect control points
     glBegin(GL_LINE_STRIP);
     float step = 1.0 / count;
     
@@ -315,7 +315,6 @@ void display()
    {
        glColor3f(1.0, 0.0, 1.0);
        glLineWidth(2);
-       // TODO: iterate over 'count'-number and call function 'draw_catmullrom'
        for (int i=0; i<count-3; i++)
        {
            draw_catmullrom(i, 100);

@@ -6,28 +6,31 @@
 #include <GL/glut.h>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
+#include <time.h>
 
 // Global constants
 // Drawing window x, y, z ranges
-#define MIN_X_VIEW -99
-#define MAX_X_VIEW 99
-#define MIN_Y_VIEW -99
-#define MAX_Y_VIEW 99
-#define MIN_Z_VIEW -99
-#define MAX_Z_VIEW 99
+#define MIN_X_VIEW -199
+#define MAX_X_VIEW 199
+#define MIN_Y_VIEW -199
+#define MAX_Y_VIEW 199
+#define MIN_Z_VIEW -199
+#define MAX_Z_VIEW 199
 
 // OpenGL window coordinates
 #define X_SCREEN 500
 #define Y_SCREEN 500
 
 // Surface rotation angle variables
-float xAngle = 5.0;
-float yAngle = 5.0;
-float zAngle = 5.0;
+float xAngle = 0.0;
+float yAngle = 0.0;
+float zAngle = 0.0;
 
 // Surface array
-const int N = 119;
+const int N = 150;
 float surface[N][N];
 
 using namespace std;
@@ -67,6 +70,25 @@ void initN2Array(float array[N][N])
 }
 
 //================================
+// Randomly-initialize values in NxN array
+// Input:
+//	array: (NxN) array to initialize
+//  maxHeight: max value of elements in array
+//================================
+void initRandN2Array(float array[N][N], int maxHeight)
+{
+	srand(time(0));
+
+	for(int i=0; i<N; i++)
+	{
+		for(int j=0; j<N; j++)
+		{
+			array[i][j] = float(rand() % maxHeight);
+		}
+	}
+}
+
+//================================
 // Init callback
 //================================
 void init()
@@ -90,13 +112,13 @@ void init()
 //================================
 void displaySurface(float xScale, float yScale)
 {
-    int step = 5;
+    int step = 10;
     
     glColor3f(1.0, 0.0, 0.0);
     
-    for (int y = 0; y < N-1; y++)
+    for (int y = 0; y < N; y++)
     {
-        for (int x = 0; x < N-1; x++)
+        for (int x = 0; x < N; x++)
         {
             if (x % step == 0)
             {
@@ -193,7 +215,8 @@ void keyboard(unsigned char key, int x, int y)
 int main(int argc, char *argv[])
 {
     displayPrompt();
-    initN2Array(surface);
+    //initN2Array(surface);
+	initRandN2Array(surface, 25);
     
     glutInit(&argc, argv);
     glutInitWindowSize(X_SCREEN, Y_SCREEN);
