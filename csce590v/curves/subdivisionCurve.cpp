@@ -88,6 +88,7 @@ void display()
     glLoadIdentity();
     
     glColor3f(1.0, 1.0, 1.0);
+    glLineWidth(3);
     glBegin(GL_LINE_LOOP);
     
     for(int i=0; i<int(X.size()); i++)
