@@ -315,7 +315,7 @@ void display()
    {
        glColor3f(1.0, 0.0, 1.0);
        glLineWidth(2);
-       for (int i=0; i<count-3; i++)
+       for (int i=0; i<=count-3; i++)
        {
            draw_catmullrom(i, 100);
        }
