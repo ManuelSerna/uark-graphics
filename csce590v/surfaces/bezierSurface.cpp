@@ -118,9 +118,9 @@ float surface[N][N] = {
 //*/
 
 // Surface rotation angles
-float xAngle = 0.0;
+float xAngle = -75.0;
 float yAngle = 0.0;
-float zAngle = 0.0;
+float zAngle = -25.0;
 
 
 
@@ -191,14 +191,13 @@ void drawWireFrameSurface(float X[N][N], float Y[N][N], float Z[N][N], int step)
 //================================
 void drawBezierSurface(float X[N][N], float Y[N][N], float Z[N][N], int count)
 {
+    float step = 1.0 / count;
     glColor3f(0.0, 1.0, 0.0);
     
     // Iterate over every horizontal and vertical line in patch
+    // Draw lines in x-direction
     for(int i=0; i<N; i++)
     {
-        // Draw lines in x-direction
-        //for(int j=0; j<N; j++)
-        //{
             float Cx[4] = {0, 0, 0, 0};
             float Cy[4] = {0, 0, 0, 0};
             float Cz[4] = {0, 0, 0, 0};
@@ -216,8 +215,6 @@ void drawBezierSurface(float X[N][N], float Y[N][N], float Z[N][N], int count)
             
             // Connect control points
             glBegin(GL_LINE_STRIP);
-            float step = 1.0 / count;
-            //float y = Y[i][j];
             
             for (float t=0; t<=1; t+=step)
             {
@@ -225,11 +222,44 @@ void drawBezierSurface(float X[N][N], float Y[N][N], float Z[N][N], int count)
                 float y = Cy[0] + t*(Cy[1] + t*(Cy[2] + t*Cy[3]));
                 float z = Cz[0] + t*(Cz[1] + t*(Cz[2] + t*Cz[3]));
                 
-                //glVertex2f(x, y);
                 glVertex3f(x, y, z);
             }
+            
             glEnd();
-        //}
+    }
+    
+    // Draw lines in y-direction
+    glColor3f(1.0, 0.0, 0.0);
+    for(int i=0; i<N; i++)
+    {
+        float Cx[4] = {0, 0, 0, 0};
+        float Cy[4] = {0, 0, 0, 0};
+        float Cz[4] = {0, 0, 0, 0};
+        
+        // Calculate individual polynomial
+        for(int k=0; k<N; k++)
+        {
+            for(int l=0; l<N; l++)
+            {
+                Cx[k] += Mb[k][l] * X[l][i];
+                Cy[k] += Mb[k][l] * Y[l][i];
+                Cz[k] += Mb[k][l] * Z[l][i];
+            }
+        }
+        
+        // Connect control points
+        glBegin(GL_LINE_STRIP);
+        float step = 1.0 / count;
+        
+        for (float t=0; t<=1; t+=step)
+        {
+            float x = Cx[0] + t*(Cx[1] + t*(Cx[2] + t*Cx[3]));
+            float y = Cy[0] + t*(Cy[1] + t*(Cy[2] + t*Cy[3]));
+            float z = Cz[0] + t*(Cz[1] + t*(Cz[2] + t*Cz[3]));
+            
+            glVertex3f(x, y, z);
+        }
+        glEnd();
     }
 }
 
