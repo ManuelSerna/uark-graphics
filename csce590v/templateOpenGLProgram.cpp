@@ -30,6 +30,7 @@
 //  TODO change
 #define X_SCREEN 500
 #define Y_SCREEN 500
+#define Z_SCREEN 500
 
 // Sleep time
 //  TODO change
@@ -56,7 +57,6 @@ void init()
         MIN_Y_VIEW, MAX_Y_VIEW, 
         MIN_Z_VIEW, MAX_Z_VIEW
     );
-
 }
 
 //================================

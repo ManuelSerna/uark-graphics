@@ -146,9 +146,30 @@ void displayPrompt()
 }
 
 //================================
+// Helper Geometry Functions
+//================================
+float getSlope(float x1, float x2, float y1, float y2)
+{
+    float slope = (y2-y1)/(x2-x1);
+    return slope;
+}
+
+float getZPlaneIntercept(float slope, float x, float z)
+{
+    float zIntercept = z - slope*x;
+    return zIntercept;
+}
+
+float getValueOnLine(float slope, float b, float input)
+{
+    float out = slope*input + b;// f(x)=mx+b
+    return out;
+}
+
+//================================
 // Draw Wireframe Surface
 //================================
-void drawWireFrameSurface(float X[N][N], float Y[N][N], float Z[N][N], int step)
+void drawWireFrameSurface(float X[N][N], float Y[N][N], float Z[N][N])
 {
     // Iterate over (X,Y,Z) 4x4 patch
     for(int i=0; i<N; i++)
@@ -183,6 +204,140 @@ void drawWireFrameSurface(float X[N][N], float Y[N][N], float Z[N][N], int step)
         
         glEnd();
     }
+}
+
+// Ver. 2: draw linearly interpolated control points
+void drawWireFrameSurface2(float X[N][N], float Y[N][N], float Z[N][N], int count)
+{
+    // Setup
+    glColor3f(0.0, 1.0, 0.0);
+    float step = 1.0/2.0;
+    
+    
+    
+    
+    
+    /*
+    glColor3f(0.0, 1.0, 0.0);
+    float step = 1.0/2.0;
+    
+    for (int i=0; i<N-1; i++)
+    {
+        // Store all four points at index i, and work our way 'step' numer
+        //  of times up to index i+1
+        float startX[N] = {X[i][0], X[i][1], X[i][2], X[i][3]};// start of interval
+        float startY[N] = {Y[i][0], Y[i][1], Y[i][2], Y[i][3]};
+        float startZ[N] = {Z[i][0], Z[i][1], Z[i][2], Z[i][3]};
+        
+        float endX[N] = {X[i+1][0], X[i+1][1], X[i+1][2], X[i+1][3]};// end of interval
+        float endY[N] = {Y[i+1][0], Y[i+1][1], Y[i+1][2], Y[i+1][3]};
+        float endZ[N] = {Z[i+1][0], Z[i+1][1], Z[i+1][2], Z[i+1][3]};
+        
+        // TODO: Compute slopes between corresponding control points in XZ-plane (since index i corresponds to moving along y-axis)
+        //
+        float m0 = getSlope(startX[0], endX[0], startZ[0], endZ[0]);
+        float m1 = getSlope(startX[1], endX[1], startZ[1], endZ[1]);
+        float m2 = getSlope(startX[2], endX[2], startZ[2], endZ[2]);
+        float m3 = getSlope(startX[3], endX[3], startZ[3], endZ[3]);
+        
+        // TODO: Compute z-intercept
+        float b0 = getZPlaneIntercept(m0, startX[0], startZ[0]);
+        float b1 = getZPlaneIntercept(m1, startX[1], startZ[1]);
+        float b2 = getZPlaneIntercept(m2, startX[2], startZ[2]);
+        float b3 = getZPlaneIntercept(m3, startX[3], startZ[3]);
+        //
+        
+        // TODO: Given start and end sets, linearly interpolate control points
+        //  in range [i, i+1] where we increment as dictated by step (step<=1.0)
+        for (float t=0; t<=1; t+=step)
+        {
+            glBegin(GL_LINE_STRIP);
+        
+            float y = startY[0];
+            
+            for (int j=0; j<N; j++)
+            {
+                //float getValueOnLine(float slope, float b, float input){...}
+                
+                float x = startX[j];
+                
+                float m = getSlope(x, endX[j], startZ[j], endZ[j]);// slope
+                float b = getZPlaneIntercept(m, x, startZ[j]);// z-intercept
+                float fx = getValueOnLine(m, b, x);
+                
+                glVertex3f(x, y, fx);
+            }
+            
+            glEnd();
+            
+            y += step;
+        }
+    }
+    */
+    
+    /*
+    // Iterate over (X,Y,Z) 4x4 patch
+    for(int i=0; i<N-1; i++)
+    {
+        // Draw 'step' number of lines between control point n and n+1
+        glBegin(GL_LINE_STRIP);
+//         glColor3f(0.0, 1.0, 0.0);
+        
+//         float startX = X[i][0];// keep first and fourth control point
+//         float startY = Y[i][0];
+//         float startZ = Z[i][0];
+        
+//         float endX = X[i][N-1];
+//         float endY = Y[i][N-1];
+//         float endZ = Z[i][N-1];
+        
+        
+        for(int j=0; j<N-1; j++)
+        {
+            float x1 = X[i][j];
+            float y1 = Y[i][j];
+            float z1 = Z[i][j];
+            
+            float x2 = X[i+1][j];
+            float y2 = Y[i+1][j];
+            float z2 = Z[i+1][j];
+            
+            // XZ component
+            float m1 = getSlope(x1, x2, z1, z2);
+            float b1 = getZPlaneIntercept(m1, x1, z1);
+            float f1 = getZPlaneIntercept(m1, b1, x1);
+            
+            // YZ component
+            float m2 = getSlope(y1, y2, z1, z2);
+            float b2 = getZPlaneIntercept(m1, y1, z1);
+            float f2 = getZPlaneIntercept(m1, b1, y1);
+            
+            // Draw points
+//             glVertex3f(x1, y1, z1);
+        }
+        
+        
+        glEnd();
+        
+        
+        
+        // Draw lines in y-direction
+//         glBegin(GL_LINE_STRIP);
+//         glColor3f(1.0, 0.0, 0.0);
+//         
+//         for(int j=0; j<N; j++)
+//         {
+//             float x = X[j][i];// NOTE: key diff is to reverse i and j indices
+//             float y = Y[j][i];
+//             float z = Z[j][i];
+//             
+//             glVertex3f(x, y, z);
+//         }
+//         
+//         glEnd();
+    }
+    */
+    
 }
 
 //================================
@@ -302,7 +457,6 @@ void display()
     glRotatef(zAngle, 0.0, 0.0, 1.0);
     
     // Display surface
-    int step = 1;
     int count = 100;
     
     if (displayBezier)
@@ -311,7 +465,8 @@ void display()
     }
     else
     {
-        drawWireFrameSurface(X, Y, surface, step);
+        //drawWireFrameSurface(X, Y, surface);
+        drawWireFrameSurface2(X, Y, surface, count);
     }
     
     glFlush();
