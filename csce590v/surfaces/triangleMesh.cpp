@@ -217,16 +217,16 @@ void drawMesh(float V[N][3], int E[M][2], int T[F][3], bool solid)
     // Iterate over triangle array
     for (int t=0; t<F; t++)
     {
-        // Fancy coloring of triangles
+        // "Fancy" coloring of triangles
         if (solid)
         {
             glBegin(GL_POLYGON);
-            float c = ((t+10)% F) / float(F);
+            float intensity = ((t+10)% F) / float(F);// grayscale intensity
             
-            if (c < 0.4) { c += 0.25; }
-            else if (c > 0.85) { c -= 0.2; }
+            if (intensity < 0.4) { intensity += 0.25; }
+            else if (intensity > 0.85) { intensity -= 0.2; }
             
-            glColor3f(c, c, c);
+            glColor3f(intensity,intensity,intensity);
         }
         else { glBegin(GL_LINE_STRIP); }
         
@@ -234,10 +234,10 @@ void drawMesh(float V[N][3], int E[M][2], int T[F][3], bool solid)
         for (int i=0; i<3; i++)
         {
             // For each edge, get end vertices
-            int edge = T[t][i];
+            int edgeIndex = T[t][i];
             
             // i. Get points for first vertex
-            int j = E[edge][0];
+            int j = E[edgeIndex][0];
             float x = V[j][0];
             float y = V[j][1];
             float z = V[j][2];
@@ -245,12 +245,15 @@ void drawMesh(float V[N][3], int E[M][2], int T[F][3], bool solid)
             glVertex3f(x, y, z);
             
             // ii. Get points for second vertex
-            j = E[edge][1];
-            x = V[j][0];
-            y = V[j][1];
-            z = V[j][2];
-            
-            glVertex3f(x, y, z);
+            if (!solid)
+            {
+                j = E[edgeIndex][1];
+                x = V[j][0];
+                y = V[j][1];
+                z = V[j][2];
+                
+                glVertex3f(x, y, z);
+            }
         }
         
         glEnd();
