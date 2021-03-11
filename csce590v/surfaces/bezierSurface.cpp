@@ -28,8 +28,8 @@
 #define MAX_Z_VIEW 10
 
 // OpenGL window coordinates
-#define X_SCREEN 500
-#define Y_SCREEN 500
+#define X_SCREEN 800
+#define Y_SCREEN 800
 
 // Sleep time
 #define SLEEP_TIME 2
@@ -465,8 +465,8 @@ void display()
     }
     else
     {
-        //drawWireFrameSurface(X, Y, surface);
-        drawWireFrameSurface2(X, Y, surface, count);
+        drawWireFrameSurface(X, Y, surface);
+        //drawWireFrameSurface2(X, Y, surface, count);
     }
     
     glFlush();

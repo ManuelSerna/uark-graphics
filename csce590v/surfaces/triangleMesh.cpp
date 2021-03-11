@@ -3,7 +3,7 @@
 /*
   Compile:
   
-    $ g++ -Wall example.cpp -lGL -lGLU -lglut
+    $ g++ -Wall triangleMesh.cpp -lGL -lGLU -lglut
 
   Execute as any other cpp program.
 */
