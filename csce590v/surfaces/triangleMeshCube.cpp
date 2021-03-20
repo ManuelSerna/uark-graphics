@@ -1,9 +1,9 @@
 //********************************
-// Display simple uniform triangle mesh (hardcoded)
+// Display simple uniform triangle mesh for a cube using just vertices and faces (defined by vertices)
 /*
   Compile:
   
-    $ g++ -Wall triangleMesh.cpp -lGL -lGLU -lglut
+    $ g++ -Wall triangleMeshCube.cpp -lGL -lGLU -lglut
 
   Execute as any other cpp program.
 */
@@ -44,95 +44,33 @@ using namespace std;
 bool solid = false;// draw mesh as polygons (T) or only lines (F)
 
 // Square surface created by triangle mesh
-const int N = 16;// number of vertices
-const int M = 33;// number of edges
-const int F = 18;// number of faces/triangles
+const int N = 8;// number of vertices
+const int M = -1;// number of edges
+const int F = 12;// number of triangle faces
 
-// Vertex array V: each index contains a 3D point.
+// Vertex array V
 float V[N][3] = {
-    {-20, 40, -30},
-    {-20, 20, -14},
-    {-20, 0, 0},
-    {-20, -20, 0},
-    
-    {0, 40, -16},
-    {0, 20, 0},
-    {0, 0, 0},
-    {0, -20, 6},
-    
-    {20, 40, -10},
-    {20, 20, 0},
-    {20, 0, 6},
-    {20, -20, 16},
-    
-    {40, 40, -4},
-    {40, 20, 4},
-    {40, 0, 10},
-    {40, -20, -4}
+    {-40, -40, -40},
+    {40, -40, -40},
+    {40, 40, -40},
+    {-40, 40, -40},
+    {-40, -40, 40},
+    {40, -40, 40},
+    {40, 40, 40},
+    {-40, 40, 40}
 };
 
-// Edges array E: each index refers to corresponding point in V. 
-int E[M][2] = {
-    {0,1},
-    {1,2},
-    {2,3},
-    {4,5},
-    {5,6},
-    {6,7},
-    {8,9},
-    {9,10},
-    {10,11},
-    {12,13},
-    {13,14},
-    {14,15},
-    {0,4},
-    {4,8},
-    {8,12},
-    {1,5},
-    {5,9},
-    {9,13},
-    {2,6},
-    {6,10},
-    {10,14},
-    {3,7},
-    {7,11},
-    {11,15},
-    {1,4},
-    {2,5},
-    {3,6},
-    {5,8},
-    {6,9},
-    {7,10},
-    {9,12},
-    {10,13},
-    {11,14}
-};
+// Edge array E
 
-// Triangle face array T: each index refers to an array of three vertices
-int T[F][3] = {
-    {0,1,4},
-    {1,4,5},
-    {1,2,5},
-    
-    {2,5,6},
-    {2,3,6},
-    {3,6,7},
-    
-    {4,5,8},
-    {5,8,9},
-    {5,6,9},
-    
-    {6,9,10},
-    {6,7,10},
-    {7,10,11},
-    
-    {8,9,12},
-    {9,12,13},
-    {9,10,13},
-    
-    {10,13,14},
-    {10,11,14},
-    {11,14,15}
+
+// Face array
+int Square[F][3] = {
+    {0, 1, 2}, {0, 3, 2},// front face
+    {2, 1, 6}, {6, 1, 5},// right face
+    {6, 5, 7}, {7, 5, 4},// back face
+    {7, 4, 0}, {3, 0, 7},// left face
+    {2, 3, 6}, {6, 3, 7},// top face
+    {1, 0, 5}, {5, 0, 4}// bottom face
 };
 
 // Angle global variables
@@ -160,9 +98,9 @@ void prompt()
 }
 
 //================================
-// Draw mesh, given vertex, edge, and face arrays
+// Draw mesh
 //================================
-void drawMesh(float V[N][3], int E[M][2], int T[F][3], bool solid)
+void drawMesh(float vertices[N][3], int triangles[F][3], bool solid)
 {    
     if (!solid)
     {
@@ -183,21 +121,18 @@ void drawMesh(float V[N][3], int E[M][2], int T[F][3], bool solid)
             
             glColor3f(intensity,intensity,intensity);
         }
-        else 
-        {
-            glBegin(GL_LINE_LOOP);
-        }
+        else { glBegin(GL_LINE_LOOP); }
         
         // Iterate through triangle t's 3 vertices
-        for (int i=0; i<3; i++)
+        for (int v=0; v<3; v++)
         {
             // For each edge, get end vertices
-            int vIndex = T[t][i];
+            int vertexIndex = triangles[t][v];
             
             // i. Get points for first vertex
-            float x = V[vIndex][0];
-            float y = V[vIndex][1];
-            float z = V[vIndex][2];
+            float x = vertices[vertexIndex][0];
+            float y = vertices[vertexIndex][1];
+            float z = vertices[vertexIndex][2];
             
             glVertex3f(x, y, z);
         }
@@ -240,7 +175,7 @@ void display()
     glRotatef(zAngle, 0.0, 0.0, 1.0);
 
     // Display mesh
-    drawMesh(V, E, T, solid);
+    drawMesh(V, Square, solid);
     
     glFlush();
 }
@@ -357,7 +292,7 @@ int main(int argc, char *argv[])
     glutInitWindowSize(X_SCREEN, Y_SCREEN);
     glutInitWindowPosition(100, 100);
     glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE | GLUT_DEPTH);
-    glutCreateWindow("Simple Triangle Mesh");
+    glutCreateWindow("Triangle Mesh: Cube");
 
     // OpenGL callbacks
     glutDisplayFunc(display);
